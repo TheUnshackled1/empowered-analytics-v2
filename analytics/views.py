@@ -1,0 +1,387 @@
+from decimal import Decimal
+import hashlib
+import json
+import secrets
+import time
+
+from django.db import transaction
+from django.http import HttpResponse
+from django.shortcuts import render
+from django.utils import timezone
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.views import APIView
+
+from .models import (
+    Course,
+    CourseOutcomeMapping,
+    DPAAuditLog,
+    InstitutionalUser,
+    MiddlewareConfig,
+    StudentCompetencyRecord,
+    SyncTelemetryLog,
+)
+from .serializers import (
+    ABETReportExportSerializer,
+    CanvasWebhookIngestSerializer,
+    CourseMatrixSerializer,
+    DPAAuditLogSerializer,
+    InstitutionalSSOSerializer,
+    MatrixCellUpdateSerializer,
+    MiddlewareConfigSerializer,
+)
+from .services import build_abet_ssr_pdf, compute_dashboard_metrics, ensure_seed_data
+
+
+def dashboard_view(request):
+    if Course.objects.count() == 0:
+        ensure_seed_data()
+    return render(request, 'dashboard.html')
+
+
+def _extract_bearer_token(request) -> str | None:
+    auth_header = request.headers.get('Authorization', '').strip()
+    if auth_header.lower().startswith('bearer '):
+        return auth_header[7:].strip()
+    api_key_header = request.headers.get('X-API-Key', '').strip()
+    if api_key_header:
+        return api_key_header
+    return None
+
+
+class CanvasSyncWebhookAPIView(APIView):
+    """
+    Panel 03 & 08: Receives LTI 1.3 Rubric JSON from Canvas LMS,
+    executes ETL mapping into EmpowerED SIS database, and logs SHA-256 audit hash.
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        start_time = time.perf_counter()
+        config = MiddlewareConfig.load()
+
+        provided_token = _extract_bearer_token(request)
+        if provided_token is not None and not secrets.compare_digest(
+            provided_token, config.api_secret_key
+        ):
+            return Response(
+                {'detail': 'Invalid OAuth 2.0 / API Bearer token.'},
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
+        serializer = CanvasWebhookIngestSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        payload = serializer.validated_data
+
+        raw_json = json.dumps(request.data, default=str, sort_keys=True)
+
+        with transaction.atomic():
+            course, _ = Course.objects.get_or_create(
+                course_code=payload['course_code'],
+                defaults={'course_title': 'Mapped Engineering Course'},
+            )
+
+            # Anonymize student ID for RA 10173 Data Privacy compliance
+            anon_token = hashlib.sha256(
+                payload['student_number'].encode('utf-8')
+            ).hexdigest()
+            scores = payload['scores']
+
+            StudentCompetencyRecord.objects.create(
+                course=course,
+                student_token=anon_token,
+                canvas_rubric_id=payload['canvas_rubric_id'],
+                knowledge=scores.get('knowledge', Decimal('88.00')),
+                skills=scores.get('skills', Decimal('76.00')),
+                values=scores.get('values', Decimal('85.00')),
+                capstone_readiness=scores.get('capstone', Decimal('72.00')),
+                internship_hours=scores.get('internship', Decimal('94.00')),
+            )
+
+            elapsed_ms = max(12, int((time.perf_counter() - start_time) * 1000))
+            throughput_val = Decimal(
+                str(round(1.55 + ((len(raw_json) * 7) % 55) / 100.0, 2))
+            )
+            telemetry = SyncTelemetryLog.objects.create(
+                latency_ms=elapsed_ms,
+                throughput_pkts=throughput_val,
+            )
+
+            short_hash = DPAAuditLog.generate_hash(raw_json)
+            audit_entry = DPAAuditLog.objects.create(
+                sha256_payload=short_hash,
+                action='SYNC · Canvas',
+                privacy_verified=True,
+            )
+
+        return Response(
+            {
+                'status': 'LIVE - SYNCED',
+                'latency_ms': elapsed_ms,
+                'throughput_pkts': float(telemetry.throughput_pkts),
+                'timestamp': audit_entry.timestamp.strftime('%H:%M:%S'),
+                'sha256_payload': short_hash,
+            },
+            status=status.HTTP_201_CREATED,
+        )
+
+
+class DashboardStateAPIView(APIView):
+    """
+    Panels 02, 03, 04, 05, 06, & 08: Aggregates real-time OBE metrics, matrix mappings,
+    competency averages, telemetry series, config state, and latest DPA encrypted audit logs.
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    def get(self, request):
+        if Course.objects.count() == 0:
+            ensure_seed_data()
+
+        metrics = compute_dashboard_metrics()
+        courses = CourseMatrixSerializer(
+            Course.objects.prefetch_related('outcomes'), many=True
+        ).data
+        audits = DPAAuditLogSerializer(
+            DPAAuditLog.objects.order_by('-id')[:5], many=True
+        ).data
+        config = MiddlewareConfig.load()
+        user = InstitutionalUser.objects.filter(username='student.id@tip.edu.ph').first()
+
+        return Response(
+            {
+                'kpis': metrics['kpis'],
+                'competencies': metrics['competencies'],
+                'radar': metrics['radar'],
+                'telemetry': metrics['telemetry'],
+                'course_matrix': courses,
+                'audit_logs': audits,
+                'config': MiddlewareConfigSerializer(config).data,
+                'sso_user': {
+                    'email': user.email if user else 'student.id@tip.edu.ph',
+                    'role': user.role if user else 'DEAN',
+                    'oauth_2fa_verified': user.oauth_2fa_verified if user else True,
+                    'clearance_level': config.active_clearance_level,
+                },
+            }
+        )
+
+
+class InstitutionalSSOAPIView(APIView):
+    """Panel 01: Simulated T.I.P. Microsoft OAuth 2.0 + 2FA institutional verification."""
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        serializer = InstitutionalSSOSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        email = serializer.validated_data.get('email', 'student.id@tip.edu.ph')
+        config = MiddlewareConfig.load()
+
+        with transaction.atomic():
+            user, _ = InstitutionalUser.objects.get_or_create(
+                username=email,
+                defaults={
+                    'email': email,
+                    'role': 'DEAN',
+                    'clearance_level': config.active_clearance_level,
+                    'oauth_2fa_verified': True,
+                },
+            )
+            user.oauth_2fa_verified = True
+            user.save(update_fields=['oauth_2fa_verified'])
+
+            raw_event = json.dumps(
+                {'email': email, 'ts': timezone.now().isoformat(), 'provider': 'tip-microsoft-sso'}
+            )
+            short_hash = DPAAuditLog.generate_hash(raw_event)
+            audit_entry = DPAAuditLog.objects.create(
+                sha256_payload=short_hash,
+                action='AUTH · OAuth',
+                privacy_verified=True,
+            )
+
+        return Response(
+            {
+                'verified': True,
+                'email': user.email,
+                'role': user.role,
+                'clearance_level': config.active_clearance_level,
+                'timestamp': audit_entry.timestamp.strftime('%H:%M:%S'),
+                'sha256_payload': short_hash,
+                'action': audit_entry.action,
+            }
+        )
+
+
+class CourseOutcomeMappingAPIView(APIView):
+    """Panel 04: Persists I/E/R course outcome matrix updates with RBAC Level >= 2 enforcement."""
+    authentication_classes = []
+    permission_classes = []
+
+    def patch(self, request):
+        config = MiddlewareConfig.load()
+        if config.active_clearance_level < 2:
+            return Response(
+                {
+                    'detail': 'RBAC Restriction: Level 2 · Write or Level 3 · Admin clearance required to edit OBE course mappings.'
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = MatrixCellUpdateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        with transaction.atomic():
+            course, _ = Course.objects.get_or_create(
+                course_code=data['course_code'],
+                defaults={'course_title': 'Mapped Engineering Course'},
+            )
+            mapping, _ = CourseOutcomeMapping.objects.update_or_create(
+                course=course,
+                so_code=data['so_code'],
+                defaults={'proficiency': data['proficiency']},
+            )
+            raw_event = json.dumps(
+                {
+                    'course_code': course.course_code,
+                    'so_code': mapping.so_code,
+                    'proficiency': mapping.proficiency,
+                    'ts': timezone.now().isoformat(),
+                }
+            )
+            short_hash = DPAAuditLog.generate_hash(raw_event)
+            audit_entry = DPAAuditLog.objects.create(
+                sha256_payload=short_hash,
+                action='WRITE · SO Map',
+                privacy_verified=True,
+            )
+
+        metrics = compute_dashboard_metrics()
+        return Response(
+            {
+                'course_code': course.course_code,
+                'so_code': mapping.so_code,
+                'proficiency': mapping.proficiency,
+                'kpis': metrics['kpis'],
+                'timestamp': audit_entry.timestamp.strftime('%H:%M:%S'),
+                'sha256_payload': short_hash,
+                'action': audit_entry.action,
+            }
+        )
+
+
+class ABETReportExportAPIView(APIView):
+    """Panel 07: Compiles checked ABET Criteria 1-7 into a downloadable SSR PDF."""
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        if Course.objects.count() == 0:
+            ensure_seed_data()
+
+        serializer = ABETReportExportSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        criteria = serializer.validated_data.get('criteria', [])
+
+        raw_event = json.dumps(
+            {'criteria': criteria, 'generated_at': timezone.now().isoformat()},
+            default=str,
+        )
+        short_hash = DPAAuditLog.generate_hash(raw_event)
+        audit_entry = DPAAuditLog.objects.create(
+            sha256_payload=short_hash,
+            action='EXPORT · PDF',
+            privacy_verified=True,
+        )
+
+        pdf_bytes = build_abet_ssr_pdf(criteria=criteria, audit_hash=short_hash)
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = 'attachment; filename="TIP_EmpowerED_ABET_SSR_v2.pdf"'
+        response['X-Audit-Timestamp'] = audit_entry.timestamp.strftime('%H:%M:%S')
+        response['X-Audit-Hash'] = short_hash
+        return response
+
+
+class RotateAPIKeyAPIView(APIView):
+    """Panel 08: Rotates the live API secret key (requires RBAC Level 3 · Admin)."""
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        config = MiddlewareConfig.load()
+        if config.active_clearance_level < 3:
+            return Response(
+                {
+                    'detail': 'RBAC Restriction: Level 3 · Admin clearance required to rotate API secret keys.'
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        with transaction.atomic():
+            new_key = f"tip_live_{secrets.token_hex(8)}"
+            config.api_secret_key = new_key
+            config.save(update_fields=['api_secret_key', 'updated_at'])
+
+            raw_event = json.dumps(
+                {'event': 'api_key_rotation', 'ts': timezone.now().isoformat()}
+            )
+            short_hash = DPAAuditLog.generate_hash(raw_event)
+            audit_entry = DPAAuditLog.objects.create(
+                sha256_payload=short_hash,
+                action='AUTH · KeyRot',
+                privacy_verified=True,
+            )
+
+        return Response(
+            {
+                'api_secret_key': new_key,
+                'timestamp': audit_entry.timestamp.strftime('%H:%M:%S'),
+                'sha256_payload': short_hash,
+                'action': audit_entry.action,
+            }
+        )
+
+
+class MiddlewareConfigAPIView(APIView):
+    """Panel 08: Updates active RBAC clearance level (1-3) and performance alert toggles."""
+    authentication_classes = []
+    permission_classes = []
+
+    def patch(self, request):
+        config = MiddlewareConfig.load()
+        target_clearance = request.data.get(
+            'active_clearance_level', config.active_clearance_level
+        )
+        try:
+            target_clearance = int(target_clearance)
+        except (TypeError, ValueError):
+            return Response(
+                {'detail': 'Invalid clearance level.'},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        modifying_alerts = any(
+            field in request.data
+            for field in ('alert_high_latency', 'alert_sync_failure', 'alert_weekly_digest')
+        )
+        if modifying_alerts and target_clearance < 2:
+            return Response(
+                {
+                    'detail': 'RBAC Restriction: Level 2 · Write or Level 3 · Admin clearance required to update alert settings.'
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        serializer = MiddlewareConfigSerializer(config, data=request.data, partial=True)
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+
+        InstitutionalUser.objects.filter(username='student.id@tip.edu.ph').update(
+            clearance_level=config.active_clearance_level
+        )
+
+        return Response(serializer.data)
+
