@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="panel-card">
+  <div class="panel-head">
+    <div class="head-left">
+      <span class="badge-num">04</span>
+      <span class="panel-title">Curriculum Outcomes-Based Course Mapping Matrix</span>
+    </div>
+    <span style="font-size: 11px; color: var(--text-sub);">Click any badge to cycle &amp; persist I / E / R proficiency</span>
+  </div>
+
+  <table class="data-tbl">
+    <thead>
+      <tr>
+        <th>Course Code &amp; Title</th>
+        <th>SO1 (Engineering Knowledge)</th>
+        <th>SO2 (Problem Analysis)</th>
+        <th>SO3 (Design/Development)</th>
+        <th>SO4 (Ethics &amp; Modern Tool Usage)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for row in matrix_rows %}
+      <tr>
+        <td><strong>{{ row.course_code }}</strong> · {{ row.course_title }}</td>
+        {% for cell in row.cells %}
+        <td>
+          {% if cell.proficiency %}
+          <span class="ier-pill tag-{{ cell.proficiency }}" data-course="{{ row.course_code }}" data-so="{{ cell.so_code }}" onclick="cycle(this)">{{ cell.proficiency }}</span>
+          {% else %}
+          —
+          {% endif %}
+        </td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div style="display:flex; gap:20px; font-size:12px; color:var(--text-sub); margin-top:18px;">
+    <span><span class="ier-pill tag-I" style="cursor:default;">I</span> Introductory Outcome</span>
+    <span><span class="ier-pill tag-E" style="cursor:default;">E</span> Enabling Outcome</span>
+    <span><span class="ier-pill tag-R" style="cursor:default;">R</span> Reinforcing Outcome</span>
+  </div>
+</div>
+
+<script>
+  async function cycle(el) {
+    const order = ['I', 'E', 'R'];
+    const prev = el.textContent.trim();
+    const next = order[(order.indexOf(prev) + 1) % 3];
+    const courseCode = el.dataset.course;
+    const soCode = el.dataset.so;
+
+    el.textContent = next;
+    el.className = 'ier-pill tag-' + next;
+
+    if (!courseCode || !soCode) return;
+
+    try {
+      const res = await fetch('/api/v2/matrix/mapping/', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ course_code: courseCode, so_code: soCode, proficiency: next }),
+      });
+      if (res.status === 403) {
+        const err = await res.json();
+        el.textContent = prev;
+        el.className = 'ier-pill tag-' + prev;
+        showToast(err.detail || 'RBAC: Level 2 · Write clearance required', 'warn');
+        return;
+      }
+      if (res.ok) {
+        const data = await res.json();
+        showToast(`${courseCode} · ${soCode} saved as [${next}] (Hash: ${data.sha256_payload})`);
+      }
+    } catch (_) {}
+  }
+</script>
+{% endblock %}

@@ -1,23 +1,25 @@
 from django.urls import path
-from .views import (
-    ABETReportExportAPIView,
-    CanvasSyncWebhookAPIView,
-    CourseOutcomeMappingAPIView,
-    DashboardStateAPIView,
-    InstitutionalSSOAPIView,
-    MiddlewareConfigAPIView,
-    RotateAPIKeyAPIView,
-    dashboard_view,
-)
+from . import views
 
 urlpatterns = [
-    path('', dashboard_view, name='empowered-dashboard'),
-    path('api/v2/hooks/canvas-sync/', CanvasSyncWebhookAPIView.as_view(), name='canvas-sync-webhook'),
-    path('api/v2/dashboard/state/', DashboardStateAPIView.as_view(), name='dashboard-state'),
-    path('api/v2/auth/sso/', InstitutionalSSOAPIView.as_view(), name='institutional-sso'),
-    path('api/v2/matrix/mapping/', CourseOutcomeMappingAPIView.as_view(), name='course-matrix-mapping'),
-    path('api/v2/reports/abet-ssr/', ABETReportExportAPIView.as_view(), name='abet-ssr-export'),
-    path('api/v2/config/rotate-key/', RotateAPIKeyAPIView.as_view(), name='rotate-api-key'),
-    path('api/v2/config/settings/', MiddlewareConfigAPIView.as_view(), name='middleware-config-settings'),
-]
+    # Multi-Page Frontend Routes (Panels 01 - 08 + Overview Grid)
+    path('', views.panel2_dashboard_view, name='home'),
+    path('overview/', views.overview_board_view, name='overview-board'),
+    path('login/', views.panel1_login_view, name='panel1-login'),
+    path('dashboard/', views.panel2_dashboard_view, name='panel2-dashboard'),
+    path('pipeline/', views.panel3_pipeline_view, name='panel3-pipeline'),
+    path('matrix/', views.panel4_matrix_view, name='panel4-matrix'),
+    path('competency/', views.panel5_competency_view, name='panel5-competency'),
+    path('audit-logs/', views.panel6_audit_view, name='panel6-audit'),
+    path('abet-export/', views.panel7_abet_view, name='panel7-abet'),
+    path('api-config/', views.panel8_config_view, name='panel8-config'),
 
+    # REST API Middleware Endpoints
+    path('api/v2/hooks/canvas-sync/', views.CanvasSyncWebhookAPIView.as_view(), name='canvas-sync-webhook'),
+    path('api/v2/dashboard/state/', views.DashboardStateAPIView.as_view(), name='dashboard-state'),
+    path('api/v2/auth/sso/', views.InstitutionalSSOAPIView.as_view(), name='institutional-sso'),
+    path('api/v2/matrix/mapping/', views.CourseOutcomeMappingAPIView.as_view(), name='course-matrix-mapping'),
+    path('api/v2/reports/abet-ssr/', views.ABETReportExportAPIView.as_view(), name='abet-ssr-export'),
+    path('api/v2/config/rotate-key/', views.RotateAPIKeyAPIView.as_view(), name='rotate-api-key'),
+    path('api/v2/config/settings/', views.MiddlewareConfigAPIView.as_view(), name='middleware-config-settings'),
+]

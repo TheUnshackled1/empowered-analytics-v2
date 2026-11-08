@@ -33,10 +33,10 @@ from .serializers import (
 from .services import build_abet_ssr_pdf, compute_dashboard_metrics, ensure_seed_data
 
 
-def dashboard_view(request):
-    if Course.objects.count() == 0:
+def seed_initial_data():
+    """Seeds initial T.I.P. CPE courses, competencies, telemetry, and DPA audit logs if empty."""
+    if not Course.objects.exists() or not DPAAuditLog.objects.exists():
         ensure_seed_data()
-    return render(request, 'dashboard.html')
 
 
 def _extract_bearer_token(request) -> str | None:
@@ -48,6 +48,127 @@ def _extract_bearer_token(request) -> str | None:
         return api_key_header
     return None
 
+
+# --- Dedicated Template Views (Overview + Panels 01 to 08) ---
+
+def overview_board_view(request):
+    seed_initial_data()
+    return render(request, 'overview_board.html', {'active_tab': 'overview'})
+
+
+def panel1_login_view(request):
+    seed_initial_data()
+    config = MiddlewareConfig.load()
+    user = InstitutionalUser.objects.first()
+    return render(
+        request,
+        'panel1_login.html',
+        {
+            'active_tab': 'p1',
+            'sso_email': user.email if user and user.email else 'dean.cit@tip.edu.ph',
+            'config': config,
+        },
+    )
+
+
+def panel2_dashboard_view(request):
+    seed_initial_data()
+    metrics = compute_dashboard_metrics()
+    return render(
+        request,
+        'panel2_dashboard.html',
+        {
+            'active_tab': 'p2',
+            'kpis': metrics['kpis'],
+            'telemetry': metrics['telemetry'],
+        },
+    )
+
+
+def panel3_pipeline_view(request):
+    seed_initial_data()
+    metrics = compute_dashboard_metrics()
+    latest_telemetry = SyncTelemetryLog.objects.order_by('-id').first()
+    return render(
+        request,
+        'panel3_pipeline.html',
+        {
+            'active_tab': 'p3',
+            'latency': latest_telemetry.latency_ms if latest_telemetry else 42,
+            'throughput': float(latest_telemetry.throughput_pkts) if latest_telemetry else 1.8,
+            'telemetry': metrics['telemetry'],
+        },
+    )
+
+
+def panel4_matrix_view(request):
+    seed_initial_data()
+    courses = Course.objects.prefetch_related('outcomes').all()
+    matrix_rows = []
+    for course in courses:
+        outcome_map = {o.so_code: o.proficiency for o in course.outcomes.all()}
+        matrix_rows.append(
+            {
+                'course_code': course.course_code,
+                'course_title': course.course_title,
+                'cells': [
+                    {'so_code': so, 'proficiency': outcome_map.get(so)}
+                    for so in ('SO1', 'SO2', 'SO3', 'SO4')
+                ],
+            }
+        )
+    return render(
+        request,
+        'panel4_matrix.html',
+        {
+            'active_tab': 'p4',
+            'courses': courses,
+            'matrix_rows': matrix_rows,
+        },
+    )
+
+
+def panel5_competency_view(request):
+    seed_initial_data()
+    metrics = compute_dashboard_metrics()
+    return render(
+        request,
+        'panel5_competency.html',
+        {
+            'active_tab': 'p5',
+            'comp': metrics['competencies'],
+            'radar': metrics['radar'],
+        },
+    )
+
+
+def panel6_audit_view(request):
+    seed_initial_data()
+    logs = DPAAuditLog.objects.order_by('-id')[:12]
+    return render(request, 'panel6_audit.html', {'active_tab': 'p6', 'logs': logs})
+
+
+def panel7_abet_view(request):
+    seed_initial_data()
+    return render(request, 'panel7_abet.html', {'active_tab': 'p7'})
+
+
+def panel8_config_view(request):
+    seed_initial_data()
+    config = MiddlewareConfig.load()
+    webhook_url = request.build_absolute_uri('/api/v2/hooks/canvas-sync/')
+    return render(
+        request,
+        'panel8_config.html',
+        {
+            'active_tab': 'p8',
+            'config': config,
+            'webhook_url': webhook_url,
+        },
+    )
+
+
+# --- REST API Middleware Views ---
 
 class CanvasSyncWebhookAPIView(APIView):
     """
@@ -99,7 +220,7 @@ class CanvasSyncWebhookAPIView(APIView):
                 internship_hours=scores.get('internship', Decimal('94.00')),
             )
 
-            elapsed_ms = max(12, int((time.perf_counter() - start_time) * 1000))
+            elapsed_ms = max(14, int((time.perf_counter() - start_time) * 1000))
             throughput_val = Decimal(
                 str(round(1.55 + ((len(raw_json) * 7) % 55) / 100.0, 2))
             )
@@ -136,18 +257,16 @@ class DashboardStateAPIView(APIView):
     permission_classes = []
 
     def get(self, request):
-        if Course.objects.count() == 0:
-            ensure_seed_data()
-
+        seed_initial_data()
         metrics = compute_dashboard_metrics()
         courses = CourseMatrixSerializer(
             Course.objects.prefetch_related('outcomes'), many=True
         ).data
         audits = DPAAuditLogSerializer(
-            DPAAuditLog.objects.order_by('-id')[:5], many=True
+            DPAAuditLog.objects.order_by('-id')[:8], many=True
         ).data
         config = MiddlewareConfig.load()
-        user = InstitutionalUser.objects.filter(username='student.id@tip.edu.ph').first()
+        user = InstitutionalUser.objects.first()
 
         return Response(
             {
@@ -159,7 +278,7 @@ class DashboardStateAPIView(APIView):
                 'audit_logs': audits,
                 'config': MiddlewareConfigSerializer(config).data,
                 'sso_user': {
-                    'email': user.email if user else 'student.id@tip.edu.ph',
+                    'email': user.email if user else 'dean.cit@tip.edu.ph',
                     'role': user.role if user else 'DEAN',
                     'oauth_2fa_verified': user.oauth_2fa_verified if user else True,
                     'clearance_level': config.active_clearance_level,
@@ -176,7 +295,7 @@ class InstitutionalSSOAPIView(APIView):
     def post(self, request):
         serializer = InstitutionalSSOSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        email = serializer.validated_data.get('email', 'student.id@tip.edu.ph')
+        email = serializer.validated_data.get('email', 'dean.cit@tip.edu.ph')
         config = MiddlewareConfig.load()
 
         with transaction.atomic():
@@ -279,9 +398,7 @@ class ABETReportExportAPIView(APIView):
     permission_classes = []
 
     def post(self, request):
-        if Course.objects.count() == 0:
-            ensure_seed_data()
-
+        seed_initial_data()
         serializer = ABETReportExportSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         criteria = serializer.validated_data.get('criteria', [])
@@ -379,9 +496,8 @@ class MiddlewareConfigAPIView(APIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
 
-        InstitutionalUser.objects.filter(username='student.id@tip.edu.ph').update(
+        InstitutionalUser.objects.all().update(
             clearance_level=config.active_clearance_level
         )
 
         return Response(serializer.data)
-

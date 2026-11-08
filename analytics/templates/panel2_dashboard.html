@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="panel-card">
+  <div class="panel-head">
+    <div class="head-left">
+      <span class="badge-num">02</span>
+      <span class="panel-title">Administrative Analytics Dashboard</span>
+    </div>
+    <span style="font-size: 11px; color: var(--emerald);">● Real-Time Executive View (Deans &amp; QA)</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px; align-items: center;">
+    <!-- Left: Donut Gauges -->
+    <div style="display: flex; justify-content: space-around; background: var(--bg-input); padding: 24px; border-radius: 10px; border: 1px solid var(--border); text-align: center;">
+      <div>
+        <svg width="130" height="130" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.5" fill="none" stroke="#1e293b" stroke-width="3.5"></circle>
+          <circle id="p2-abet-ring" cx="18" cy="18" r="15.5" fill="none" stroke="#f59e0b" stroke-width="3.5" stroke-dasharray="{{ kpis.abet_accreditation }}, 100" transform="rotate(-90 18 18)"></circle>
+          <text id="p2-abet-txt" x="18" y="20.5" fill="#f8fafc" font-size="7" font-weight="800" text-anchor="middle">{{ kpis.abet_accreditation }}%</text>
+        </svg>
+        <div style="font-size: 13px; font-weight: 700; margin-top: 8px;">ABET Accreditation</div>
+      </div>
+      <div>
+        <svg width="130" height="130" viewBox="0 0 36 36">
+          <circle cx="18" cy="18" r="15.5" fill="none" stroke="#1e293b" stroke-width="3.5"></circle>
+          <circle id="p2-ched-ring" cx="18" cy="18" r="15.5" fill="none" stroke="#10b981" stroke-width="3.5" stroke-dasharray="{{ kpis.ched_obe_status }}, 100" transform="rotate(-90 18 18)"></circle>
+          <text id="p2-ched-txt" x="18" y="20.5" fill="#f8fafc" font-size="7" font-weight="800" text-anchor="middle">{{ kpis.ched_obe_status }}%</text>
+        </svg>
+        <div style="font-size: 13px; font-weight: 700; margin-top: 8px;">CHED OBE Status</div>
+      </div>
+    </div>
+
+    <!-- Right: KPI Cards -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+      <div style="background: var(--bg-input); border: 1px solid var(--border); padding: 20px; border-radius: 10px;">
+        <div style="font-size: 11px; color: var(--text-muted);">MATRIX COVERAGE</div>
+        <div id="p2-cov-txt" style="font-size: 32px; font-weight: 800; color: var(--emerald); margin: 6px 0;">{{ kpis.matrix_coverage }}%</div>
+        <div style="font-size: 11px; color: var(--text-sub);">▲ 3.2 pts vs. last term</div>
+      </div>
+      <div style="background: var(--bg-input); border: 1px solid var(--border); padding: 20px; border-radius: 10px;">
+        <div style="font-size: 11px; color: var(--text-muted);">CURRICULUM DEFICIT</div>
+        <div id="p2-def-txt" style="font-size: 32px; font-weight: 800; color: var(--gold); margin: 6px 0;">{{ kpis.deficit }}%</div>
+        <div style="font-size: 11px; color: var(--text-sub);">▼ 1.4 pts vs. last term</div>
+      </div>
+      <div style="background: var(--bg-input); border: 1px solid var(--border); padding: 16px; border-radius: 10px; grid-column: span 2;">
+        <div style="font-size: 11px; color: var(--text-sub); margin-bottom: 6px;">
+          Active Cohort Tracking: <strong>3,000 College of IT Student Records</strong>
+          (<span id="p2-synced-count">{{ telemetry.total_synced_records }}</span> live LTI batches ingested)
+        </div>
+        <div style="font-size: 11px; color: var(--emerald);">Zero Manual Excel Uploads Required · Direct Canvas LTI 1.3 Ingestion</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  window.onCanvasSynced = async function() {
+    try {
+      const res = await fetch('/api/v2/dashboard/state/');
+      if (!res.ok) return;
+      const state = await res.json();
+      const k = state.kpis;
+      document.getElementById('p2-abet-txt').textContent = k.abet_accreditation + '%';
+      document.getElementById('p2-abet-ring').setAttribute('stroke-dasharray', k.abet_accreditation + ', 100');
+      document.getElementById('p2-ched-txt').textContent = k.ched_obe_status + '%';
+      document.getElementById('p2-ched-ring').setAttribute('stroke-dasharray', k.ched_obe_status + ', 100');
+      document.getElementById('p2-cov-txt').textContent = k.matrix_coverage + '%';
+      document.getElementById('p2-def-txt').textContent = k.deficit + '%';
+      if (state.telemetry) {
+        document.getElementById('p2-synced-count').textContent = state.telemetry.total_synced_records;
+      }
+    } catch (_) {}
+  };
+</script>
+{% endblock %}

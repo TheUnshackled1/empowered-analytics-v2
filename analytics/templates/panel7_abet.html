@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="panel-card">
+  <div class="panel-head">
+    <div class="head-left">
+      <span class="badge-num">07</span>
+      <span class="panel-title">ABET Self-Study Report PDF Export Portal</span>
+    </div>
+    <span style="font-size: 11px; color: var(--text-sub);">Server-Side PDF Compiler · RA 10173 Sealed</span>
+  </div>
+
+  <div style="display: grid; grid-template-columns: 1.4fr 1fr; gap: 28px; align-items: center;">
+    <div id="crit-box" style="display:flex; flex-direction:column; gap:12px; font-size:13px;">
+      <label style="cursor:pointer;"><input type="checkbox" data-code="Criterion 1" data-title="Students" checked onchange="calcSSR()" style="accent-color:var(--emerald);"> Criterion 1 · Students</label>
+      <label style="cursor:pointer;"><input type="checkbox" data-code="Criterion 2" data-title="Program Educational Objectives" checked onchange="calcSSR()" style="accent-color:var(--emerald);"> Criterion 2 · Program Educational Objectives</label>
+      <label style="cursor:pointer;"><input type="checkbox" data-code="Criterion 3" data-title="Student Outcomes (SO1-SO4)" checked onchange="calcSSR()" style="accent-color:var(--emerald);"> Criterion 3 · Student Outcomes (SO1–SO4)</label>
+      <label style="cursor:pointer;"><input type="checkbox" data-code="Criterion 4" data-title="Continuous Improvement" checked onchange="calcSSR()" style="accent-color:var(--emerald);"> Criterion 4 · Continuous Improvement</label>
+      <label style="cursor:pointer;"><input type="checkbox" data-code="Criterion 5" data-title="Curriculum Alignment" onchange="calcSSR()" style="accent-color:var(--emerald);"> Criterion 5 · Curriculum Alignment</label>
+      <label style="cursor:pointer;"><input type="checkbox" data-code="Criterion 6" data-title="Faculty Qualifications" checked onchange="calcSSR()" style="accent-color:var(--emerald);"> Criterion 6 · Faculty Qualifications</label>
+      <label style="cursor:pointer;"><input type="checkbox" data-code="Criterion 7" data-title="Institutional Facilities" onchange="calcSSR()" style="accent-color:var(--emerald);"> Criterion 7 · Institutional Facilities</label>
+    </div>
+
+    <div style="text-align: center; background: var(--bg-input); padding: 28px; border-radius: 10px; border: 1px solid var(--border);">
+      <svg width="130" height="130" viewBox="0 0 36 36">
+        <circle cx="18" cy="18" r="15.5" fill="none" stroke="#1e293b" stroke-width="3.5"></circle>
+        <circle id="ssr-ring" cx="18" cy="18" r="15.5" fill="none" stroke="#10b981" stroke-width="3.5" stroke-dasharray="71, 100" transform="rotate(-90 18 18)"></circle>
+        <text id="ssr-text" x="18" y="20.5" fill="#f8fafc" font-size="7" font-weight="800" text-anchor="middle">71%</text>
+      </svg>
+      <div id="ssr-label" style="font-size: 12px; color: var(--text-sub); margin: 10px 0 16px;">5 of 7 sections locked</div>
+      <button class="btn-gold" style="width:100%; margin-bottom:8px;" onclick="downloadABETReport()">Download ABET SSR PDF Report</button>
+      <button class="status-pill" style="width:100%; border-radius:6px; color:var(--text-sub);" onclick="window.print()">Print Browser View</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  function calcSSR() {
+    const boxes = document.querySelectorAll('#crit-box input');
+    const checked = Array.from(boxes).filter(b => b.checked).length;
+    const pct = Math.round((checked / boxes.length) * 100);
+    document.getElementById('ssr-text').textContent = pct + '%';
+    document.getElementById('ssr-ring').setAttribute('stroke-dasharray', pct + ', 100');
+    document.getElementById('ssr-label').textContent = `${checked} of ${boxes.length} sections locked`;
+  }
+
+  async function downloadABETReport() {
+    const boxes = document.querySelectorAll('#crit-box input');
+    const criteria = Array.from(boxes).map(b => ({
+      code: b.dataset.code,
+      title: b.dataset.title,
+      locked: b.checked,
+    }));
+    try {
+      const res = await fetch('/api/v2/reports/abet-ssr/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ criteria }),
+      });
+      if (res.ok) {
+        const blob = await res.blob();
+        const hash = res.headers.get('X-Audit-Hash') || '';
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'TIP_EmpowerED_ABET_SSR_v2.pdf';
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+        showToast(`ABET SSR PDF downloaded & logged (${hash})`);
+        return;
+      }
+    } catch (_) {}
+    window.print();
+  }
+</script>
+{% endblock %}

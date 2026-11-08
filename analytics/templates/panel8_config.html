@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block extra_head %}
+<style>
+  .toggle-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 8px 0; border-bottom: 1px solid #1a253a; }
+  .switch {
+    width: 34px; height: 18px; background: #334155; border-radius: 12px;
+    position: relative; cursor: pointer; transition: 0.2s;
+  }
+  .switch.active { background: var(--emerald); }
+  .switch::after {
+    content: ''; width: 14px; height: 14px; background: #fff; border-radius: 50%;
+    position: absolute; top: 2px; left: 2px; transition: 0.2s;
+  }
+  .switch.active::after { left: 18px; }
+  .role-opt {
+    text-align: center; cursor: pointer; user-select: none; transition: 0.15s;
+  }
+  .role-opt.selected {
+    border-color: var(--gold) !important; color: var(--gold) !important; font-weight: 700;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="panel-card" style="max-width: 720px; margin: 0 auto;">
+  <div class="panel-head">
+    <div class="head-left">
+      <span class="badge-num">08</span>
+      <span class="panel-title">Middleware System Alerts &amp; API Config</span>
+    </div>
+  </div>
+
+  <label class="input-lbl">API Secret Key (OAuth 2.0 Container — Click Input to Reveal)</label>
+  <div style="display:flex; gap:10px; margin-bottom:14px;">
+    <input class="input-box" id="api-key-field" type="password" value="{{ config.api_secret_key }}" onclick="this.type = this.type === 'password' ? 'text' : 'password'" readonly style="cursor:pointer;">
+    <button class="btn-gold" style="white-space:nowrap;" onclick="rotateSecretKey()">Rotate Key</button>
+  </div>
+
+  <label class="input-lbl">Webhook Listener URL</label>
+  <input class="input-box" type="text" value="{{ webhook_url }}" readonly style="margin-bottom:18px;">
+
+  <label class="input-lbl">Performance Alerts</label>
+  <div style="background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; padding: 6px 14px; margin-bottom: 18px;">
+    <div class="toggle-row">
+      <span>Latency &gt; 200 ms threshold alert</span>
+      <div class="switch {% if config.alert_high_latency %}active{% endif %}" onclick="toggleConfigSwitch(this, 'alert_high_latency')"></div>
+    </div>
+    <div class="toggle-row">
+      <span>Canvas LTI sync failure notifications</span>
+      <div class="switch {% if config.alert_sync_failure %}active{% endif %}" onclick="toggleConfigSwitch(this, 'alert_sync_failure')"></div>
+    </div>
+    <div class="toggle-row" style="border-bottom:none;">
+      <span>Weekly OBE executive digest email</span>
+      <div class="switch {% if config.alert_weekly_digest %}active{% endif %}" onclick="toggleConfigSwitch(this, 'alert_weekly_digest')"></div>
+    </div>
+  </div>
+
+  <label class="input-lbl">Security Clearance Level (Role-Based Access Control)</label>
+  <div id="p8-rbac-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-top:8px;">
+    <div class="input-box role-opt {% if config.active_clearance_level == 1 %}selected{% endif %}" data-level="1" onclick="selectRole(this, 1)">
+      {% if config.active_clearance_level == 1 %}●{% else %}○{% endif %} Level 1 · Read
+    </div>
+    <div class="input-box role-opt {% if config.active_clearance_level == 2 %}selected{% endif %}" data-level="2" onclick="selectRole(this, 2)">
+      {% if config.active_clearance_level == 2 %}●{% else %}○{% endif %} Level 2 · Write
+    </div>
+    <div class="input-box role-opt {% if config.active_clearance_level == 3 %}selected{% endif %}" data-level="3" onclick="selectRole(this, 3)">
+      {% if config.active_clearance_level == 3 %}●{% else %}○{% endif %} Level 3 · Admin
+    </div>
+  </div>
+</div>
+
+<script>
+  async function selectRole(el, level) {
+    Array.from(el.parentElement.children).forEach(c => {
+      c.classList.remove('selected');
+      c.textContent = c.textContent.trim().replace('●', '○');
+    });
+    el.classList.add('selected');
+    el.textContent = el.textContent.trim().replace('○', '●');
+
+    try {
+      const res = await fetch('/api/v2/config/settings/', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active_clearance_level: level }),
+      });
+      if (res.ok) {
+        const names = { 1: 'Level 1 · Read', 2: 'Level 2 · Write', 3: 'Level 3 · Admin' };
+        showToast(`Active clearance set to ${names[level]}`);
+      }
+    } catch (_) {}
+  }
+
+  async function toggleConfigSwitch(el, fieldName) {
+    const nextState = !el.classList.contains('active');
+    el.classList.toggle('active', nextState);
+    try {
+      const res = await fetch('/api/v2/config/settings/', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [fieldName]: nextState }),
+      });
+      if (res.status === 403) {
+        const err = await res.json();
+        el.classList.toggle('active', !nextState);
+        showToast(err.detail || 'RBAC: Level 2 clearance required', 'warn');
+      }
+    } catch (_) {}
+  }
+
+  async function rotateSecretKey() {
+    try {
+      const res = await fetch('/api/v2/config/rotate-key/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      if (res.status === 403) {
+        const err = await res.json();
+        showToast(err.detail || 'RBAC: Select Level 3 · Admin to rotate secret key', 'warn');
+        return;
+      }
+      if (res.ok) {
+        const data = await res.json();
+        const input = document.getElementById('api-key-field');
+        input.value = data.api_secret_key;
+        input.type = 'text';
+        setTimeout(() => { input.type = 'password'; }, 3000);
+        showToast(`API Secret Key rotated & logged (Hash: ${data.sha256_payload})`);
+      }
+    } catch (_) {}
+  }
+</script>
+{% endblock %}
