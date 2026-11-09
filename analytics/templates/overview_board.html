@@ -232,7 +232,20 @@
       <thead>
         <tr><th>COURSE</th><th>SO1</th><th>SO2</th><th>SO3</th><th>SO4</th></tr>
       </thead>
-      <tbody id="matrix-body"></tbody>
+      <tbody id="matrix-body">
+        {% for row in matrix_rows %}
+        <tr>
+          <td><strong>{{ row.course_code }}</strong><br><span style="font-size:8px; color:var(--text-muted);">{{ row.course_title }}</span></td>
+          {% for cell in row.cells %}
+          <td>
+            {% if cell.proficiency %}
+            <span class="ier-pill tag-{{ cell.proficiency }}" data-course="{{ row.course_code }}" data-so="{{ cell.so_code }}" onclick="cycleIER(this)">{{ cell.proficiency }}</span>
+            {% else %}—{% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
     <div style="display:flex; gap:12px; font-size:9px; color:var(--text-sub); padding-top:6px;">
       <span><span class="ier-pill tag-I" style="width:14px;height:14px;cursor:default;">I</span> Introductory</span>
@@ -308,7 +321,16 @@
       <thead>
         <tr><th>TIMESTAMP</th><th>SHA-256 PAYLOAD</th><th>ACTION</th><th>PRIVACY</th></tr>
       </thead>
-      <tbody id="audit-body"></tbody>
+      <tbody id="audit-body">
+        {% for log in logs %}
+        <tr>
+          <td>{{ log.timestamp|time:"H:i:s" }}</td>
+          <td style="color:var(--blue); font-family:monospace;">{{ log.sha256_payload }}</td>
+          <td><span class="act-pill">{{ log.action }}</span></td>
+          <td style="color:var(--emerald);">{% if log.privacy_verified %}✓{% else %}—{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
     </table>
     <div style="font-size:8px; color:var(--text-muted); margin-top:4px;">Immutable ledger synced with PostgreSQL/SQLite audit store</div>
   </section>

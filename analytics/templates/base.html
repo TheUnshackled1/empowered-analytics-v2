@@ -145,10 +145,6 @@
     <a href="{% url 'overview-board' %}" class="nav-item {% if active_tab == 'overview' %}active{% endif %}" style="margin-left:auto; border-color:#334155;">⊞ 8-Panel Master Board</a>
   </nav>
 
-  <main class="{% block container_class %}page-container{% endblock %}">
-    {% block content %}{% endblock %}
-  </main>
-
   <div id="toast-container"></div>
 
   <script>
@@ -157,6 +153,7 @@
 
     function showToast(message, variant = 'ok') {
       const container = document.getElementById('toast-container');
+      if (!container) return;
       const div = document.createElement('div');
       div.className = 'toast-msg' + (variant === 'warn' ? ' warn' : variant === 'error' ? ' error' : '');
       div.textContent = message;
@@ -170,7 +167,7 @@
       const btn = document.getElementById('sync-btn');
       const courseCode = GLOBAL_SYNC_COURSES[globalSyncIdx % GLOBAL_SYNC_COURSES.length];
       globalSyncIdx += 1;
-      btn.textContent = `⏳ Syncing Canvas LTI 1.3 (${courseCode})...`;
+      if (btn) btn.textContent = `⏳ Syncing Canvas LTI 1.3 (${courseCode})...`;
 
       try {
         const headers = { 'Content-Type': 'application/json' };
@@ -199,7 +196,7 @@
         if (res.ok) {
           const data = await res.json();
           data.course_code = courseCode;
-          btn.textContent = `✓ Synced (${data.latency_ms} ms) | Hash: ${data.sha256_payload}`;
+          if (btn) btn.textContent = `✓ Synced (${data.latency_ms} ms) | Hash: ${data.sha256_payload}`;
           showToast(`Canvas LMS synced (${courseCode}) in ${data.latency_ms} ms`);
           if (typeof window.onCanvasSynced === 'function') {
             window.onCanvasSynced(data);
@@ -208,10 +205,14 @@
         }
       } catch (e) {}
 
-      btn.textContent = '● Live Sync Complete';
+      if (btn) btn.textContent = '● Live Sync Complete';
       showToast(`Simulated Canvas sync (${courseCode})`);
     }
   </script>
+
+  <main class="{% block container_class %}page-container{% endblock %}">
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>
 

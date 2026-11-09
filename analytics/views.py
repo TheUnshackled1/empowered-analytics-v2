@@ -49,17 +49,45 @@ def _extract_bearer_token(request) -> str | None:
     return None
 
 
+def _build_matrix_rows():
+    courses = Course.objects.prefetch_related('outcomes').all()
+    matrix_rows = []
+    for course in courses:
+        outcome_map = {o.so_code: o.proficiency for o in course.outcomes.all()}
+        matrix_rows.append(
+            {
+                'course_code': course.course_code,
+                'course_title': course.course_title,
+                'cells': [
+                    {'so_code': so, 'proficiency': outcome_map.get(so)}
+                    for so in ('SO1', 'SO2', 'SO3', 'SO4')
+                ],
+            }
+        )
+    return courses, matrix_rows
+
+
 # --- Dedicated Template Views (Overview + Panels 01 to 08) ---
 
 def overview_board_view(request):
     seed_initial_data()
-    return render(request, 'overview_board.html', {'active_tab': 'overview'})
+    _, matrix_rows = _build_matrix_rows()
+    logs = DPAAuditLog.objects.order_by('-id')[:5]
+    return render(
+        request,
+        'overview_board.html',
+        {
+            'active_tab': 'overview',
+            'matrix_rows': matrix_rows,
+            'logs': logs,
+        },
+    )
 
 
 def panel1_login_view(request):
     seed_initial_data()
     config = MiddlewareConfig.load()
-    user = InstitutionalUser.objects.first()
+    user = InstitutionalUser.objects.order_by('-id').first()
     return render(
         request,
         'panel1_login.html',
@@ -103,20 +131,7 @@ def panel3_pipeline_view(request):
 
 def panel4_matrix_view(request):
     seed_initial_data()
-    courses = Course.objects.prefetch_related('outcomes').all()
-    matrix_rows = []
-    for course in courses:
-        outcome_map = {o.so_code: o.proficiency for o in course.outcomes.all()}
-        matrix_rows.append(
-            {
-                'course_code': course.course_code,
-                'course_title': course.course_title,
-                'cells': [
-                    {'so_code': so, 'proficiency': outcome_map.get(so)}
-                    for so in ('SO1', 'SO2', 'SO3', 'SO4')
-                ],
-            }
-        )
+    courses, matrix_rows = _build_matrix_rows()
     return render(
         request,
         'panel4_matrix.html',
@@ -266,7 +281,7 @@ class DashboardStateAPIView(APIView):
             DPAAuditLog.objects.order_by('-id')[:8], many=True
         ).data
         config = MiddlewareConfig.load()
-        user = InstitutionalUser.objects.first()
+        user = InstitutionalUser.objects.order_by('-id').first()
 
         return Response(
             {
