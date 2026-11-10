@@ -37,3 +37,4 @@ async function downloadABETReport() {
   } catch (_) {}
   window.print();
 }
+

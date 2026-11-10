@@ -21,3 +21,4 @@ window.onCanvasSynced = function (data) {
     tbody.removeChild(tbody.lastChild);
   }
 };
+

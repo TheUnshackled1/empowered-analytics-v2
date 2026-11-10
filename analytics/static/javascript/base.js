@@ -58,3 +58,4 @@ async function triggerGlobalSync() {
   if (btn) btn.textContent = '● Live Sync Complete';
   showToast(`Simulated Canvas sync (${courseCode})`);
 }
+

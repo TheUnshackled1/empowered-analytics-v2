@@ -17,3 +17,4 @@ window.onCanvasSynced = async function () {
     }
   } catch (_) {}
 };
+

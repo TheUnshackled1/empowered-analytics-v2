@@ -33,3 +33,4 @@ window.onCanvasSynced = function (data) {
 };
 
 document.addEventListener('DOMContentLoaded', refreshPipelineSparkline);
+

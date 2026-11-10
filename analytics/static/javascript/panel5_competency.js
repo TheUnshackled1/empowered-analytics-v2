@@ -38,3 +38,4 @@ async function hydrateCompetencies() {
 
 window.onCanvasSynced = hydrateCompetencies;
 document.addEventListener('DOMContentLoaded', hydrateCompetencies);
+

@@ -17,3 +17,4 @@ async function handleInstitutionalLogin(btn) {
 
   window.location.href = redirectUrl;
 }
+
