@@ -1,19 +1,25 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel1_login.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="panel-card" style="max-width: 460px; margin: 20px auto;">
+<div class="panel-card login-card">
   <div class="panel-head">
     <div class="head-left">
       <span class="badge-num">01</span>
       <span class="panel-title">Secure OAuth Login Screen</span>
     </div>
   </div>
-  <div style="text-align: center; margin: 16px 0 22px;">
-    <div class="tip-seal" style="width: 56px; height: 56px; font-size: 14px; margin: 0 auto 10px;">T.I.P.</div>
-    <div style="font-weight: 800; font-size: 18px;">EmpowerED</div>
-    <div style="font-size: 11px; color: var(--text-muted); letter-spacing: 0.8px;">INSTITUTIONAL SINGLE SIGN-ON</div>
+  <div class="login-brand-hero">
+    <div class="tip-seal tip-seal-lg">T.I.P.</div>
+    <div class="login-brand-title">EmpowerED</div>
+    <div class="login-brand-sub">INSTITUTIONAL SINGLE SIGN-ON</div>
   </div>
 
-  <button class="btn-gold" style="width: 100%; margin-bottom: 14px;" onclick="handleInstitutionalLogin()">
+  <button class="btn-gold btn-sso-login" data-redirect-url="{% url 'panel2-dashboard' %}" onclick="handleInstitutionalLogin(this)">
     ⊞ Log in with T.I.P. Microsoft Account
   </button>
 
@@ -24,30 +30,15 @@
     <input class="input-box" type="password" value="••••••••••••">
   </div>
 
-  <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 12px; font-size: 12px; color: var(--emerald); margin: 16px 0;">
+  <div class="oauth-verified-banner">
     ✓ <strong>2FA · OAuth Verified</strong><br>
-    <span id="sso-subtext" style="font-size: 11px; color: var(--text-sub);">
+    <span id="sso-subtext" class="oauth-verified-sub">
       Authenticated via institutional OAuth 2.0 bearer container · Clearance Level {{ config.active_clearance_level }}
     </span>
   </div>
 </div>
-
-<script>
-  async function handleInstitutionalLogin() {
-    const email = document.getElementById('sso-email-input').value || 'dean.cit@tip.edu.ph';
-    try {
-      const res = await fetch('/api/v2/auth/sso/', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
-      });
-      if (res.ok) {
-        const data = await res.json();
-        showToast(`Verified ${data.email} (SHA-256: ${data.sha256_payload})`);
-      }
-    } catch (_) {}
-    window.location.href = "{% url 'panel2-dashboard' %}";
-  }
-</script>
 {% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'javascript/panel1_login.js' %}"></script>
+{% endblock %}

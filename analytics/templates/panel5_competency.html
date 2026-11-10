@@ -1,4 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel5_competency.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="panel-card">
   <div class="panel-head">
@@ -6,11 +12,11 @@
       <span class="badge-num">05</span>
       <span class="panel-title">Student Competency Radar Chart &amp; Progress</span>
     </div>
-    <span style="font-size:11px; color:var(--text-sub);">Target Attainment Benchmark: 80% (White Markers)</span>
+    <span class="benchmark-hint">Target Attainment Benchmark: 80% (White Markers)</span>
   </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 32px; align-items: center;">
-    <div style="text-align: center; background: var(--bg-input); padding: 24px; border-radius: 10px; border: 1px solid var(--border);">
+  <div class="competency-split">
+    <div class="radar-box">
       <svg width="240" height="240" viewBox="0 0 120 120">
         <polygon points="60,12 102,36 102,84 60,108 18,84 18,36" fill="none" stroke="#23304a" stroke-width="1"/>
         <polygon points="60,28 88,44 88,76 60,92 32,76 32,44" fill="none" stroke="#23304a" stroke-width="1"/>
@@ -33,96 +39,57 @@
       </svg>
     </div>
 
-    <div style="display: flex; flex-direction: column; gap: 16px;">
+    <div class="progress-list">
       <div>
-        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+        <div class="progress-row-head">
           <span>Knowledge Attainment</span>
-          <strong id="p5-val-knowledge" style="color:var(--gold);">{{ comp.knowledge|floatformat:0 }}%</strong>
+          <strong id="p5-val-knowledge" class="val-gold">{{ comp.knowledge|floatformat:0 }}%</strong>
         </div>
-        <div style="background:var(--bg-input); height:8px; border-radius:4px;">
-          <div id="p5-bar-knowledge" style="width:{{ comp.knowledge|floatformat:0 }}%; height:100%; background:var(--gold); border-radius:4px; transition:width 0.3s;"></div>
+        <div class="progress-track-lg">
+          <div id="p5-bar-knowledge" class="progress-fill-lg fill-gold" style="width:{{ comp.knowledge|floatformat:0 }}%;"></div>
         </div>
       </div>
       <div>
-        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+        <div class="progress-row-head">
           <span>Technical Skills</span>
-          <strong id="p5-val-skills" style="color:var(--emerald);">{{ comp.skills|floatformat:0 }}%</strong>
+          <strong id="p5-val-skills" class="val-emerald">{{ comp.skills|floatformat:0 }}%</strong>
         </div>
-        <div style="background:var(--bg-input); height:8px; border-radius:4px;">
-          <div id="p5-bar-skills" style="width:{{ comp.skills|floatformat:0 }}%; height:100%; background:var(--emerald); border-radius:4px; transition:width 0.3s;"></div>
+        <div class="progress-track-lg">
+          <div id="p5-bar-skills" class="progress-fill-lg fill-emerald" style="width:{{ comp.skills|floatformat:0 }}%;"></div>
         </div>
       </div>
       <div>
-        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+        <div class="progress-row-head">
           <span>Professional Values &amp; Ethics</span>
-          <strong id="p5-val-values" style="color:var(--blue);">{{ comp.values|floatformat:0 }}%</strong>
+          <strong id="p5-val-values" class="val-blue">{{ comp.values|floatformat:0 }}%</strong>
         </div>
-        <div style="background:var(--bg-input); height:8px; border-radius:4px;">
-          <div id="p5-bar-values" style="width:{{ comp.values|floatformat:0 }}%; height:100%; background:var(--blue); border-radius:4px; transition:width 0.3s;"></div>
+        <div class="progress-track-lg">
+          <div id="p5-bar-values" class="progress-fill-lg fill-blue" style="width:{{ comp.values|floatformat:0 }}%;"></div>
         </div>
       </div>
       <div>
-        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+        <div class="progress-row-head">
           <span>Capstone Readiness</span>
-          <strong id="p5-val-capstone" style="color:var(--gold);">{{ comp.capstone|floatformat:0 }}%</strong>
+          <strong id="p5-val-capstone" class="val-gold">{{ comp.capstone|floatformat:0 }}%</strong>
         </div>
-        <div style="background:var(--bg-input); height:8px; border-radius:4px;">
-          <div id="p5-bar-capstone" style="width:{{ comp.capstone|floatformat:0 }}%; height:100%; background:var(--gold); border-radius:4px; transition:width 0.3s;"></div>
+        <div class="progress-track-lg">
+          <div id="p5-bar-capstone" class="progress-fill-lg fill-gold" style="width:{{ comp.capstone|floatformat:0 }}%;"></div>
         </div>
       </div>
       <div>
-        <div style="display:flex; justify-content:space-between; font-size:13px; margin-bottom:6px;">
+        <div class="progress-row-head">
           <span>Internship Hours Compliance</span>
-          <strong id="p5-val-internship" style="color:var(--emerald);">{{ comp.internship|floatformat:0 }}%</strong>
+          <strong id="p5-val-internship" class="val-emerald">{{ comp.internship|floatformat:0 }}%</strong>
         </div>
-        <div style="background:var(--bg-input); height:8px; border-radius:4px;">
-          <div id="p5-bar-internship" style="width:{{ comp.internship|floatformat:0 }}%; height:100%; background:var(--emerald); border-radius:4px; transition:width 0.3s;"></div>
+        <div class="progress-track-lg">
+          <div id="p5-bar-internship" class="progress-fill-lg fill-emerald" style="width:{{ comp.internship|floatformat:0 }}%;"></div>
         </div>
       </div>
     </div>
   </div>
 </div>
-
-<script>
-  function updateRadarPolygon(radar) {
-    if (!radar) return;
-    const axes = [
-      radar.knowledge ?? 88,
-      radar.problem_solving ?? 82,
-      radar.design ?? 74,
-      radar.communication ?? 89,
-      radar.ethics ?? 85,
-      radar.teamwork ?? 90,
-    ];
-    const anglesDeg = [-90, -30, 30, 90, 150, 210];
-    const pts = axes.map((pct, i) => {
-      const r = (Math.min(100, Math.max(10, Number(pct))) / 100) * 48;
-      const rad = (anglesDeg[i] * Math.PI) / 180;
-      return `${(60 + r * Math.cos(rad)).toFixed(1)},${(60 + r * Math.sin(rad)).toFixed(1)}`;
-    });
-    document.getElementById('p5-radar-poly').setAttribute('points', pts.join(' '));
-  }
-
-  async function hydrateCompetencies() {
-    try {
-      const res = await fetch('/api/v2/dashboard/state/');
-      if (!res.ok) return;
-      const state = await res.json();
-      const c = state.competencies;
-      if (c) {
-        ['knowledge', 'skills', 'values', 'capstone', 'internship'].forEach(k => {
-          const pct = Math.round(Number(c[k] || 0));
-          document.getElementById(`p5-val-${k}`).textContent = pct + '%';
-          document.getElementById(`p5-bar-${k}`).style.width = pct + '%';
-        });
-        document.getElementById('p5-lbl-know').textContent = `Knowledge (${Math.round(c.knowledge)}%)`;
-      }
-      updateRadarPolygon(state.radar);
-    } catch (_) {}
-  }
-
-  window.onCanvasSynced = hydrateCompetencies;
-  document.addEventListener('DOMContentLoaded', hydrateCompetencies);
-</script>
 {% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'javascript/panel5_competency.js' %}"></script>
+{% endblock %}

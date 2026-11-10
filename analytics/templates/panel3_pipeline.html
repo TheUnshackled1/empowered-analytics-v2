@@ -1,4 +1,10 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/panel3_pipeline.css' %}">
+{% endblock %}
+
 {% block content %}
 <div class="panel-card">
   <div class="panel-head">
@@ -9,23 +15,23 @@
     <button class="btn-gold" onclick="triggerGlobalSync()">Run Manual ETL Sync Test</button>
   </div>
 
-  <div style="display: flex; align-items: center; justify-content: space-between; background: var(--bg-input); padding: 24px; border-radius: 10px; border: 1px solid var(--border); margin-bottom: 20px;">
-    <div style="text-align: center; width: 35%;">
-      <div style="font-size: 16px; font-weight: 800;">Canvas LMS</div>
-      <div style="font-size: 11px; color: var(--text-muted); margin-top: 4px;">REST · LTI 1.3 Rubric Stream</div>
+  <div class="pipeline-flow-banner">
+    <div class="pipeline-node">
+      <div class="pipeline-node-title">Canvas LMS</div>
+      <div class="pipeline-node-sub">REST · LTI 1.3 Rubric Stream</div>
     </div>
-    <div style="color: var(--gold); font-weight: 800; font-size: 20px; letter-spacing: 4px;">----------&gt;</div>
-    <div style="text-align: center; width: 35%;">
-      <div style="font-size: 16px; font-weight: 800;">EmpowerED SIS</div>
-      <div style="font-size: 11px; color: var(--emerald); margin-top: 4px;">● LIVE · DATABASE SYNCED</div>
+    <div class="pipeline-arrow">----------&gt;</div>
+    <div class="pipeline-node">
+      <div class="pipeline-node-title">EmpowerED SIS</div>
+      <div class="pipeline-node-live">● LIVE · DATABASE SYNCED</div>
     </div>
   </div>
 
-  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
-    <div style="background: var(--bg-input); padding: 18px; border-radius: 10px; border: 1px solid var(--border);">
-      <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px;">
-        <span style="color:var(--text-sub);">Latency (ms) — last 60 min</span>
-        <span><strong id="page-latency" style="font-size:16px;">{{ latency }}</strong> ms avg</span>
+  <div class="telemetry-split">
+    <div class="telemetry-card">
+      <div class="telemetry-card-head">
+        <span class="telemetry-lbl">Latency (ms) — last 60 min</span>
+        <span><strong id="page-latency" class="latency-val-lg">{{ latency }}</strong> ms avg</span>
       </div>
       <svg width="100%" height="90" viewBox="0 0 260 55">
         <path id="p3-latency-area" d="M0,45 Q35,30 65,38 T130,22 T195,28 T260,15 L260,55 L0,55 Z" fill="rgba(245, 158, 11, 0.18)"></path>
@@ -33,55 +39,20 @@
       </svg>
     </div>
 
-    <div style="background: var(--bg-input); padding: 18px; border-radius: 10px; border: 1px solid var(--border);">
-      <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px;">
-        <span style="color:var(--text-sub);">Data Packet Throughput</span>
-        <strong id="page-throughput" style="color:var(--emerald);">{{ throughput|floatformat:1 }}k pkt/s</strong>
+    <div class="telemetry-card">
+      <div class="telemetry-card-head">
+        <span class="telemetry-lbl">Data Packet Throughput</span>
+        <strong id="page-throughput" class="throughput-val-lg">{{ throughput|floatformat:1 }}k pkt/s</strong>
       </div>
-      <pre id="payload-preview" style="font-family: monospace; font-size: 11px; color: var(--emerald); line-height: 1.55; white-space: pre-wrap;">[API 200] OAuth 2.0 Handshake Verified
+      <pre id="payload-preview" class="payload-terminal">[API 200] OAuth 2.0 Handshake Verified
 [GET] /api/v1/courses/CPE515/rubrics
 [ETL] Mapping JSON -> SO1..SO4 Matrix
 [DPA] SHA-256 Anonymization Complete</pre>
     </div>
   </div>
 </div>
-
-<script>
-  async function refreshPipelineSparkline() {
-    try {
-      const res = await fetch('/api/v2/dashboard/state/');
-      if (!res.ok) return;
-      const state = await res.json();
-      const series = state.telemetry && state.telemetry.latency_series;
-      if (Array.isArray(series) && series.length > 1) {
-        const maxLat = Math.max(70, ...series);
-        const stepX = 260 / (series.length - 1);
-        const coords = series.map((ms, i) => {
-          const x = (i * stepX).toFixed(1);
-          const y = (50 - Math.min(42, (ms / maxLat) * 38)).toFixed(1);
-          return `${x},${y}`;
-        });
-        const lineD = 'M' + coords.join(' L');
-        document.getElementById('p3-latency-line').setAttribute('d', lineD);
-        document.getElementById('p3-latency-area').setAttribute('d', `${lineD} L260,55 L0,55 Z`);
-      }
-    } catch (_) {}
-  }
-
-  window.onCanvasSynced = function(data) {
-    document.getElementById('page-latency').textContent = data.latency_ms;
-    if (data.throughput_pkts) {
-      document.getElementById('page-throughput').textContent = Number(data.throughput_pkts).toFixed(1) + 'k pkt/s';
-    }
-    document.getElementById('payload-preview').textContent =
-      `[SYNCED AT ${data.timestamp}] Course: ${data.course_code || 'CPE 515'}\n` +
-      `Latency: ${data.latency_ms} ms\n` +
-      `SHA-256 Hash: ${data.sha256_payload}\n` +
-      `Status: ${data.status}`;
-    refreshPipelineSparkline();
-  };
-
-  document.addEventListener('DOMContentLoaded', refreshPipelineSparkline);
-</script>
 {% endblock %}
 
+{% block extra_js %}
+<script src="{% static 'javascript/panel3_pipeline.js' %}"></script>
+{% endblock %}

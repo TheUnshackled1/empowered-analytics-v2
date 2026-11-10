@@ -1,4 +1,5 @@
 import hashlib
+from django.contrib.staticfiles import finders
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APIClient
@@ -52,6 +53,48 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
                 self.assertIn('module-nav', html)
                 self.assertIn('8-Panel Master Board', html)
                 self.assertIn(expected_heading, html)
+
+    def test_static_css_and_javascript_files_exist_and_are_linked_in_templates(self):
+        """Every HTML template has a dedicated CSS file in static/css/ and JS file in static/javascript/."""
+        template_bases = [
+            'base',
+            'overview_board',
+            'panel1_login',
+            'panel2_dashboard',
+            'panel3_pipeline',
+            'panel4_matrix',
+            'panel5_competency',
+            'panel6_audit',
+            'panel7_abet',
+            'panel8_config',
+        ]
+        for name in template_bases:
+            with self.subTest(static_asset=name):
+                css_path = finders.find(f'css/{name}.css')
+                js_path = finders.find(f'javascript/{name}.js')
+                self.assertIsNotNone(css_path, f'Missing static/css/{name}.css')
+                self.assertIsNotNone(js_path, f'Missing static/javascript/{name}.js')
+
+        route_asset_pairs = [
+            ('overview-board', 'overview_board'),
+            ('panel1-login', 'panel1_login'),
+            ('panel2-dashboard', 'panel2_dashboard'),
+            ('panel3-pipeline', 'panel3_pipeline'),
+            ('panel4-matrix', 'panel4_matrix'),
+            ('panel5-competency', 'panel5_competency'),
+            ('panel6-audit', 'panel6_audit'),
+            ('panel7-abet', 'panel7_abet'),
+            ('panel8-config', 'panel8_config'),
+        ]
+        for url_name, asset_name in route_asset_pairs:
+            with self.subTest(route_assets=url_name):
+                response = self.client.get(reverse(url_name))
+                html = response.content.decode('utf-8')
+                self.assertIn('/static/css/base.css', html)
+                self.assertIn('/static/javascript/base.js', html)
+                self.assertIn(f'/static/css/{asset_name}.css', html)
+                self.assertIn(f'/static/javascript/{asset_name}.js', html)
+                self.assertNotIn('<style>', html)
 
     def test_dashboard_state_endpoint_aggregates_seeded_metrics(self):
         """GET /api/v2/dashboard/state/ returns accurate baseline KPIs, matrix, radar, and audits."""
