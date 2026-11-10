@@ -1,0 +1,83 @@
+.exec-live-badge {
+  font-size: 11px;
+  color: var(--emerald);
+}
+
+.dashboard-split-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: center;
+}
+
+.donut-panel-box {
+  display: flex;
+  justify-content: space-around;
+  background: var(--bg-input);
+  padding: 24px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  text-align: center;
+}
+
+.donut-title-lg {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: 8px;
+}
+
+.kpi-cards-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.kpi-box-lg {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.kpi-label-lg {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.kpi-value-lg {
+  font-size: 32px;
+  font-weight: 800;
+  margin: 6px 0;
+}
+
+.kpi-value-emerald {
+  color: var(--emerald);
+}
+
+.kpi-value-gold {
+  color: var(--gold);
+}
+
+.kpi-sub-lg {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.cohort-banner {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  padding: 16px;
+  border-radius: 10px;
+  grid-column: span 2;
+}
+
+.cohort-title {
+  font-size: 11px;
+  color: var(--text-sub);
+  margin-bottom: 6px;
+}
+
+.cohort-sub {
+  font-size: 11px;
+  color: var(--emerald);
+}

@@ -1,0 +1,79 @@
+.pipeline-flow-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--bg-input);
+  padding: 24px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.pipeline-node {
+  text-align: center;
+  width: 35%;
+}
+
+.pipeline-node-title {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.pipeline-node-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+
+.pipeline-node-live {
+  font-size: 11px;
+  color: var(--emerald);
+  margin-top: 4px;
+}
+
+.pipeline-arrow {
+  color: var(--gold);
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: 4px;
+}
+
+.telemetry-split {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.telemetry-card {
+  background: var(--bg-input);
+  padding: 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.telemetry-card-head {
+  display: flex;
+  justify-content: space-between;
+  font-size: 12px;
+  margin-bottom: 10px;
+}
+
+.telemetry-lbl {
+  color: var(--text-sub);
+}
+
+.latency-val-lg {
+  font-size: 16px;
+}
+
+.throughput-val-lg {
+  color: var(--emerald);
+}
+
+.payload-terminal {
+  font-family: monospace;
+  font-size: 11px;
+  color: var(--emerald);
+  line-height: 1.55;
+  white-space: pre-wrap;
+}

@@ -1,0 +1,20 @@
+.panel-sub-hint {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.matrix-legend {
+  display: flex;
+  gap: 20px;
+  font-size: 12px;
+  color: var(--text-sub);
+  margin-top: 18px;
+}
+
+.ier-pill-static {
+  cursor: default;
+}
+
+.ier-pill-static:hover {
+  transform: none;
+}

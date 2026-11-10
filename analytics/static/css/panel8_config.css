@@ -1,0 +1,93 @@
+.config-card {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.secret-key-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.secret-key-input {
+  cursor: pointer;
+}
+
+.btn-rotate-key {
+  white-space: nowrap;
+}
+
+.webhook-input {
+  margin-bottom: 18px;
+}
+
+.alerts-group-box {
+  background: var(--bg-input);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 6px 14px;
+  margin-bottom: 18px;
+}
+
+.toggle-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid #1a253a;
+}
+
+.toggle-row-last {
+  border-bottom: none;
+}
+
+.switch {
+  width: 34px;
+  height: 18px;
+  background: #334155;
+  border-radius: 12px;
+  position: relative;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.switch.active {
+  background: var(--emerald);
+}
+
+.switch::after {
+  content: '';
+  width: 14px;
+  height: 14px;
+  background: #fff;
+  border-radius: 50%;
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  transition: 0.2s;
+}
+
+.switch.active::after {
+  left: 18px;
+}
+
+.rbac-role-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.role-opt {
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  transition: 0.15s;
+}
+
+.role-opt.selected {
+  border-color: var(--gold) !important;
+  color: var(--gold) !important;
+  font-weight: 700;
+}

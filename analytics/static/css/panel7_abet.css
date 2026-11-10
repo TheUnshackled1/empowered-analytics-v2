@@ -1,0 +1,52 @@
+.abet-seal-note {
+  font-size: 11px;
+  color: var(--text-sub);
+}
+
+.abet-export-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 28px;
+  align-items: center;
+}
+
+.criteria-checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 13px;
+}
+
+.criteria-checklist label {
+  cursor: pointer;
+}
+
+.criteria-checklist input[type="checkbox"] {
+  accent-color: var(--emerald);
+  cursor: pointer;
+}
+
+.ssr-gauge-box {
+  text-align: center;
+  background: var(--bg-input);
+  padding: 28px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+}
+
+.ssr-locked-label {
+  font-size: 12px;
+  color: var(--text-sub);
+  margin: 10px 0 16px;
+}
+
+.btn-download-ssr {
+  width: 100%;
+  margin-bottom: 8px;
+}
+
+.btn-print-secondary {
+  width: 100%;
+  border-radius: 6px;
+  color: var(--text-sub);
+}
