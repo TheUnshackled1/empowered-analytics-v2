@@ -62,8 +62,10 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
                 html = response.content.decode('utf-8')
                 self.assertIn('app-body', html)
                 self.assertIn('module-nav', html)
+                self.assertIn('nav-icon', html)
                 self.assertNotIn('class="nav-num"', html)
-                self.assertIn('8-Panel Master Board', html)
+                self.assertNotIn('nav-section-lbl', html)
+                self.assertNotIn('8-Panel Master Board', html)
                 self.assertIn(expected_heading, html)
 
     def test_static_css_and_javascript_files_exist_and_are_linked_in_templates(self):

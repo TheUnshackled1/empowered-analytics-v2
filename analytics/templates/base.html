@@ -33,16 +33,87 @@
 
   <div class="app-body">
     {% if request.session.empowered_authenticated and active_tab != 'p1' %}
-    <nav class="module-nav">
-      <div class="nav-section-lbl">MODULES</div>
-      <a href="{% url 'panel2-dashboard' %}" class="nav-item {% if active_tab == 'p2' %}active{% endif %}">Analytics Dashboard</a>
-      <a href="{% url 'panel3-pipeline' %}" class="nav-item {% if active_tab == 'p3' %}active{% endif %}">API Sync Pipeline</a>
-      <a href="{% url 'panel4-matrix' %}" class="nav-item {% if active_tab == 'p4' %}active{% endif %}">Course Mapping Matrix</a>
-      <a href="{% url 'panel5-competency' %}" class="nav-item {% if active_tab == 'p5' %}active{% endif %}">Competency Radar</a>
-      <a href="{% url 'panel6-audit' %}" class="nav-item {% if active_tab == 'p6' %}active{% endif %}">DPA Audit Logs</a>
-      <a href="{% url 'panel7-abet' %}" class="nav-item {% if active_tab == 'p7' %}active{% endif %}">ABET PDF Export</a>
-      <a href="{% url 'panel8-config' %}" class="nav-item {% if active_tab == 'p8' %}active{% endif %}">System Alerts &amp; Config</a>
-      <a href="{% url 'overview-board' %}" class="nav-item nav-item-overview {% if active_tab == 'overview' %}active{% endif %}">⊞ 8-Panel Master Board</a>
+    <nav class="module-nav" aria-label="EmpowerED Module Navigation">
+      <a href="{% url 'panel2-dashboard' %}" class="nav-item {% if active_tab == 'p2' %}active{% endif %}">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="9.5" cy="9.5" r="6" stroke-dasharray="28 10" />
+            <circle cx="9.5" cy="9.5" r="2.3" />
+            <path d="M15.5 19.5v-4M18.5 19.5v-7M21.5 19.5v-10" />
+          </svg>
+        </span>
+        <span class="nav-label">Analytics Dashboard</span>
+      </a>
+
+      <a href="{% url 'panel3-pipeline' %}" class="nav-item {% if active_tab == 'p3' %}active{% endif %}">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="6.5" width="5.5" height="11" rx="1.5" />
+            <rect x="16.5" y="6.5" width="5.5" height="11" rx="1.5" />
+            <path d="M7.5 12h2.2l1.3-3 2 6 1.3-3h2.2" />
+          </svg>
+        </span>
+        <span class="nav-label">API Sync Pipeline</span>
+      </a>
+
+      <a href="{% url 'panel4-matrix' %}" class="nav-item {% if active_tab == 'p4' %}active{% endif %}">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="7" height="7" rx="1.5" />
+            <rect x="14" y="3" width="7" height="7" rx="1.5" />
+            <rect x="3" y="14" width="7" height="7" rx="1.5" />
+            <circle cx="17.5" cy="17.5" r="3.5" />
+            <path d="M16.3 17.5h2.4M17.5 16.3v2.4" />
+          </svg>
+        </span>
+        <span class="nav-label">Course Mapping Matrix</span>
+      </a>
+
+      <a href="{% url 'panel5-competency' %}" class="nav-item {% if active_tab == 'p5' %}active{% endif %}">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="12 2.5 20.2 7.2 20.2 16.8 12 21.5 3.8 16.8 3.8 7.2" />
+            <polygon points="12 6.8 16.8 9.8 15.5 15.8 12 17.6 7.5 14.8 8.2 9.2" stroke-opacity="0.85" />
+            <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+          </svg>
+        </span>
+        <span class="nav-label">Competency Radar</span>
+      </a>
+
+      <a href="{% url 'panel6-audit' %}" class="nav-item {% if active_tab == 'p6' %}active{% endif %}">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2.8L4.5 6v5.8c0 5 3.2 8.9 7.5 10.4 4.3-1.5 7.5-5.4 7.5-10.4V6L12 2.8z" />
+            <path d="M9.2 12.2l2 2 3.8-4" />
+          </svg>
+        </span>
+        <span class="nav-label">DPA Audit Logs</span>
+      </a>
+
+      <a href="{% url 'panel7-abet' %}" class="nav-item {% if active_tab == 'p7' %}active{% endif %}">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M14 2.8H6.8A1.8 1.8 0 0 0 5 4.6v14.8a1.8 1.8 0 0 0 1.8 1.8h10.4a1.8 1.8 0 0 0 1.8-1.8V7.8L14 2.8z" />
+            <polyline points="13.8 2.8 13.8 8 19 8" />
+            <path d="M12 11.5v5.5M9.6 14.8L12 17.2l2.4-2.4" />
+          </svg>
+        </span>
+        <span class="nav-label">ABET PDF Export</span>
+      </a>
+
+      <a href="{% url 'panel8-config' %}" class="nav-item {% if active_tab == 'p8' %}active{% endif %}">
+        <span class="nav-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="6.5" x2="20" y2="6.5" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="17.5" x2="20" y2="17.5" />
+            <circle cx="9" cy="6.5" r="2.2" fill="#10192b" />
+            <circle cx="15.5" cy="12" r="2.2" fill="#10192b" />
+            <circle cx="10.5" cy="17.5" r="2.2" fill="#10192b" />
+          </svg>
+        </span>
+        <span class="nav-label">System Alerts &amp; Config</span>
+      </a>
     </nav>
     {% endif %}
 
