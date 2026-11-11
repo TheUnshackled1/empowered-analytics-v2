@@ -31,14 +31,21 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         self.assertEqual(outcomes, {'SO1': 'R', 'SO2': 'R', 'SO3': 'R', 'SO4': 'R'})
 
     def test_all_multipage_routes_and_overview_board_render_cleanly(self):
-        """All 10 frontend routes render base.html navigation and expected panel content."""
-        # Authenticate the test session first
+        """Login hides module-nav; all 9 protected routes render base.html navigation once authenticated."""
+        login_res = self.client.get(reverse('panel1-login'))
+        self.assertEqual(login_res.status_code, 200)
+        self.assertEqual(login_res.context['active_tab'], 'p1')
+        login_html = login_res.content.decode('utf-8')
+        self.assertIn('Secure OAuth Login Screen', login_html)
+        self.assertNotIn('class="module-nav"', login_html)
+        self.assertNotIn('Analytics Dashboard', login_html)
+
+        # Authenticate the test session for protected routes
         self.client.post(reverse('session-login'), {'email': 'dean.cit@tip.edu.ph'}, format='json')
 
         expected_routes = [
             ('home', 'p2', 'Administrative Analytics Dashboard'),
             ('overview-board', 'overview', 'Middleware System Alerts'),
-            ('panel1-login', 'p1', 'Secure OAuth Login Screen'),
             ('panel2-dashboard', 'p2', 'Administrative Analytics Dashboard'),
             ('panel3-pipeline', 'p3', 'Live API Middleware Sync Pipeline'),
             ('panel4-matrix', 'p4', 'Curriculum Outcomes-Based Course Mapping Matrix'),
@@ -83,7 +90,6 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
 
         route_asset_pairs = [
             ('overview-board', 'overview_board'),
-            ('panel1-login', 'panel1_login'),
             ('panel2-dashboard', 'panel2_dashboard'),
             ('panel3-pipeline', 'panel3_pipeline'),
             ('panel4-matrix', 'panel4_matrix'),
@@ -91,6 +97,7 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
             ('panel6-audit', 'panel6_audit'),
             ('panel7-abet', 'panel7_abet'),
             ('panel8-config', 'panel8_config'),
+            ('panel1-login', 'panel1_login'),
         ]
         for url_name, asset_name in route_asset_pairs:
             with self.subTest(route_assets=url_name):
