@@ -105,8 +105,15 @@ def overview_board_view(request):
 
 def panel1_login_view(request):
     seed_initial_data()
+    # Visiting /login/ always places the user in an unauthenticated state
+    # until they complete institutional sign-in.
+    request.session.pop('empowered_authenticated', None)
+    request.session.pop('empowered_user_email', None)
     config = MiddlewareConfig.load()
-    user = InstitutionalUser.objects.order_by('-id').first()
+    user = (
+        InstitutionalUser.objects.filter(email='dean.cit@tip.edu.ph').first()
+        or InstitutionalUser.objects.order_by('id').first()
+    )
     return render(
         request,
         'panel1_login.html',

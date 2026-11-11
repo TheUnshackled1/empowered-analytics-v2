@@ -25,15 +25,15 @@
 
   <div>
     <label class="input-lbl">Institutional Username</label>
-    <input class="input-box" id="sso-email-input" type="email" value="{{ sso_email }}">
+    <input class="input-box" id="sso-email-input" type="email" value="{{ sso_email }}" required>
     <label class="input-lbl">Password</label>
-    <input class="input-box" type="password" value="••••••••••••">
+    <input class="input-box" id="sso-password-input" type="password" value="••••••••••••" required>
   </div>
 
   <div class="oauth-verified-banner">
-    ✓ <strong>2FA · OAuth Verified</strong><br>
+    ✓ <strong>2FA · OAuth 2.0 Protection Active</strong><br>
     <span id="sso-subtext" class="oauth-verified-sub">
-      Authenticated via institutional OAuth 2.0 bearer container · Clearance Level {{ config.active_clearance_level }}
+      Sign in above to unlock Panels 02–08 · Clearance Level {{ config.active_clearance_level }}
     </span>
   </div>
 </div>
