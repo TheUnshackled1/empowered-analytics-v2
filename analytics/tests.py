@@ -60,7 +60,9 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
                 self.assertEqual(response.status_code, 200)
                 self.assertEqual(response.context['active_tab'], expected_tab)
                 html = response.content.decode('utf-8')
+                self.assertIn('app-body', html)
                 self.assertIn('module-nav', html)
+                self.assertNotIn('class="nav-num"', html)
                 self.assertIn('8-Panel Master Board', html)
                 self.assertIn(expected_heading, html)
 
