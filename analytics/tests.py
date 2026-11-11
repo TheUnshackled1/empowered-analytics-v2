@@ -32,6 +32,9 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
 
     def test_all_multipage_routes_and_overview_board_render_cleanly(self):
         """All 10 frontend routes render base.html navigation and expected panel content."""
+        # Authenticate the test session first
+        self.client.post(reverse('session-login'), {'email': 'dean.cit@tip.edu.ph'}, format='json')
+
         expected_routes = [
             ('home', 'p2', 'Administrative Analytics Dashboard'),
             ('overview-board', 'overview', 'Middleware System Alerts'),
@@ -56,6 +59,9 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
 
     def test_static_css_and_javascript_files_exist_and_are_linked_in_templates(self):
         """Every HTML template has a dedicated CSS file in static/css/ and JS file in static/javascript/."""
+        # Authenticate the test session first
+        self.client.post(reverse('session-login'), {'email': 'dean.cit@tip.edu.ph'}, format='json')
+
         template_bases = [
             'base',
             'overview_board',
@@ -233,3 +239,64 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         self.assertEqual(response['Content-Type'], 'application/pdf')
         self.assertTrue(response.content.startswith(b'%PDF-'))
         self.assertEqual(DPAAuditLog.objects.first().action, 'EXPORT · PDF')
+
+    # ------------------------------------------------------------------
+    # Authentication guard tests
+    # ------------------------------------------------------------------
+
+    def test_protected_routes_redirect_unauthenticated_to_login(self):
+        """All panel routes redirect to /login/?next=<path> when session is not set."""
+        protected = [
+            'home',
+            'overview-board',
+            'panel2-dashboard',
+            'panel3-pipeline',
+            'panel4-matrix',
+            'panel5-competency',
+            'panel6-audit',
+            'panel7-abet',
+            'panel8-config',
+        ]
+        for name in protected:
+            url = reverse(name)
+            with self.subTest(route=name):
+                # Fresh client per sub-test to guarantee no session leakage
+                from django.test import Client
+                fresh_client = Client()
+                response = fresh_client.get(url)
+                self.assertEqual(response.status_code, 302)
+                self.assertIn('/login/', response['Location'])
+
+    def test_session_login_and_protected_access(self):
+        """After POST /api/v2/auth/session-login/ the session allows access to protected panels."""
+        login_res = self.client.post(
+            reverse('session-login'),
+            {'email': 'dean.cit@tip.edu.ph'},
+            format='json',
+        )
+        self.assertEqual(login_res.status_code, 200)
+        self.assertTrue(login_res.json()['verified'])
+
+        # Session cookie is now set — dashboard must return 200
+        dashboard = self.client.get(reverse('panel2-dashboard'))
+        self.assertEqual(dashboard.status_code, 200)
+
+    def test_logout_clears_session(self):
+        """GET /logout/ flushes the session and redirects to /login/; protected panels block again."""
+        # Log in first
+        self.client.post(
+            reverse('session-login'),
+            {'email': 'dean.cit@tip.edu.ph'},
+            format='json',
+        )
+        # Confirm access
+        self.assertEqual(self.client.get(reverse('panel2-dashboard')).status_code, 200)
+
+        # Log out
+        out = self.client.get(reverse('empowered-logout'))
+        self.assertRedirects(out, reverse('panel1-login'), fetch_redirect_response=False)
+
+        # Protected panel must redirect again
+        blocked = self.client.get(reverse('panel2-dashboard'))
+        self.assertEqual(blocked.status_code, 302)
+        self.assertIn('/login/', blocked['Location'])

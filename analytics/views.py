@@ -1,4 +1,5 @@
 from decimal import Decimal
+from functools import wraps
 import hashlib
 import json
 import secrets
@@ -6,7 +7,8 @@ import time
 
 from django.db import transaction
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import redirect, render
+from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.response import Response
@@ -31,6 +33,22 @@ from .serializers import (
     MiddlewareConfigSerializer,
 )
 from .services import build_abet_ssr_pdf, compute_dashboard_metrics, ensure_seed_data
+
+
+# ---------------------------------------------------------------------------
+# Session-based authentication guard
+# ---------------------------------------------------------------------------
+
+def _empowered_login_required(view_func):
+    """Redirect unauthenticated visitors to /login/?next=<requested-path>."""
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.session.get('empowered_authenticated'):
+            login_url = reverse('panel1-login')
+            next_url = request.get_full_path()
+            return redirect(f'{login_url}?next={next_url}')
+        return view_func(request, *args, **kwargs)
+    return _wrapped
 
 
 def seed_initial_data():
@@ -69,6 +87,7 @@ def _build_matrix_rows():
 
 # --- Dedicated Template Views (Overview + Panels 01 to 08) ---
 
+@_empowered_login_required
 def overview_board_view(request):
     seed_initial_data()
     _, matrix_rows = _build_matrix_rows()
@@ -99,6 +118,7 @@ def panel1_login_view(request):
     )
 
 
+@_empowered_login_required
 def panel2_dashboard_view(request):
     seed_initial_data()
     metrics = compute_dashboard_metrics()
@@ -113,6 +133,7 @@ def panel2_dashboard_view(request):
     )
 
 
+@_empowered_login_required
 def panel3_pipeline_view(request):
     seed_initial_data()
     metrics = compute_dashboard_metrics()
@@ -129,6 +150,7 @@ def panel3_pipeline_view(request):
     )
 
 
+@_empowered_login_required
 def panel4_matrix_view(request):
     seed_initial_data()
     courses, matrix_rows = _build_matrix_rows()
@@ -143,6 +165,7 @@ def panel4_matrix_view(request):
     )
 
 
+@_empowered_login_required
 def panel5_competency_view(request):
     seed_initial_data()
     metrics = compute_dashboard_metrics()
@@ -157,17 +180,20 @@ def panel5_competency_view(request):
     )
 
 
+@_empowered_login_required
 def panel6_audit_view(request):
     seed_initial_data()
     logs = DPAAuditLog.objects.order_by('-id')[:12]
     return render(request, 'panel6_audit.html', {'active_tab': 'p6', 'logs': logs})
 
 
+@_empowered_login_required
 def panel7_abet_view(request):
     seed_initial_data()
     return render(request, 'panel7_abet.html', {'active_tab': 'p7'})
 
 
+@_empowered_login_required
 def panel8_config_view(request):
     seed_initial_data()
     config = MiddlewareConfig.load()
@@ -181,6 +207,18 @@ def panel8_config_view(request):
             'webhook_url': webhook_url,
         },
     )
+
+
+def empowered_session_logout_view(request):
+    """Clear the EmpowerED session and redirect to the login page."""
+    request.session.flush()
+    return redirect('panel1-login')
+
+
+def empowered_session_logout_view(request):
+    """Clear the EmpowerED session and redirect to the login page."""
+    request.session.flush()
+    return redirect('panel1-login')
 
 
 # --- REST API Middleware Views ---
@@ -345,6 +383,58 @@ class InstitutionalSSOAPIView(APIView):
                 'timestamp': audit_entry.timestamp.strftime('%H:%M:%S'),
                 'sha256_payload': short_hash,
                 'action': audit_entry.action,
+            }
+        )
+
+
+class EmpowerEdSessionLoginAPIView(APIView):
+    """
+    Panel 01: Sets the ``empowered_authenticated`` Django session flag after
+    institutional SSO verification. Called by panel1_login.js before the
+    browser is redirected to the dashboard.
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        email = request.data.get('email', 'dean.cit@tip.edu.ph')
+        config = MiddlewareConfig.load()
+
+        raw_event = json.dumps(
+            {'email': email, 'ts': timezone.now().isoformat(), 'provider': 'tip-microsoft-sso'}
+        )
+        short_hash = DPAAuditLog.generate_hash(raw_event)
+        audit_entry = DPAAuditLog.objects.create(
+            sha256_payload=short_hash,
+            action='AUTH · OAuth',
+            privacy_verified=True,
+        )
+
+        # Establish or refresh the institutional user record
+        with transaction.atomic():
+            user, _ = InstitutionalUser.objects.get_or_create(
+                username=email,
+                defaults={
+                    'email': email,
+                    'role': 'DEAN',
+                    'clearance_level': config.active_clearance_level,
+                    'oauth_2fa_verified': True,
+                },
+            )
+            user.oauth_2fa_verified = True
+            user.save(update_fields=['oauth_2fa_verified'])
+
+        # Mark the Django session as authenticated
+        request.session['empowered_authenticated'] = True
+        request.session['empowered_user_email'] = email
+
+        return Response(
+            {
+                'verified': True,
+                'email': email,
+                'clearance_level': config.active_clearance_level,
+                'timestamp': audit_entry.timestamp.strftime('%H:%M:%S'),
+                'sha256_payload': short_hash,
             }
         )
 

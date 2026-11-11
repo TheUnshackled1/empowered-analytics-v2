@@ -6,6 +6,7 @@ urlpatterns = [
     path('', views.panel2_dashboard_view, name='home'),
     path('overview/', views.overview_board_view, name='overview-board'),
     path('login/', views.panel1_login_view, name='panel1-login'),
+    path('logout/', views.empowered_session_logout_view, name='empowered-logout'),
     path('dashboard/', views.panel2_dashboard_view, name='panel2-dashboard'),
     path('pipeline/', views.panel3_pipeline_view, name='panel3-pipeline'),
     path('matrix/', views.panel4_matrix_view, name='panel4-matrix'),
@@ -18,8 +19,10 @@ urlpatterns = [
     path('api/v2/hooks/canvas-sync/', views.CanvasSyncWebhookAPIView.as_view(), name='canvas-sync-webhook'),
     path('api/v2/dashboard/state/', views.DashboardStateAPIView.as_view(), name='dashboard-state'),
     path('api/v2/auth/sso/', views.InstitutionalSSOAPIView.as_view(), name='institutional-sso'),
+    path('api/v2/auth/session-login/', views.EmpowerEdSessionLoginAPIView.as_view(), name='session-login'),
     path('api/v2/matrix/mapping/', views.CourseOutcomeMappingAPIView.as_view(), name='course-matrix-mapping'),
     path('api/v2/reports/abet-ssr/', views.ABETReportExportAPIView.as_view(), name='abet-ssr-export'),
     path('api/v2/config/rotate-key/', views.RotateAPIKeyAPIView.as_view(), name='rotate-api-key'),
     path('api/v2/config/settings/', views.MiddlewareConfigAPIView.as_view(), name='middleware-config-settings'),
 ]
+
