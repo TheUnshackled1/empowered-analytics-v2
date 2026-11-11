@@ -12,19 +12,22 @@
 <body>
 
   <header class="topbar">
-    <a href="{% url 'panel2-dashboard' %}" class="brand">
+    <a href="{% if request.session.empowered_authenticated %}{% url 'panel2-dashboard' %}{% else %}{% url 'panel1-login' %}{% endif %}" class="brand">
       <div class="tip-seal">T.I.P.</div>
       <div>
         <div class="brand-title">EmpowerED <span>ANALYTICS MODULE v2.0</span></div>
         <div class="brand-sub">Technological Institute of the Philippines | Web System Interface Design</div>
       </div>
     </a>
+    {% if request.session.empowered_authenticated %}
     <div style="display:flex; gap:10px;">
       <button class="status-pill" id="sync-btn" onclick="triggerGlobalSync()">● Trigger Live Canvas API Sync</button>
       <a href="{% url 'empowered-logout' %}" class="status-pill" style="color:var(--rose); border-color:var(--rose); text-decoration:none;">↩ Logout</a>
     </div>
+    {% endif %}
   </header>
 
+  {% if request.session.empowered_authenticated %}
   <nav class="module-nav">
     <a href="{% url 'panel1-login' %}" class="nav-item {% if active_tab == 'p1' %}active{% endif %}"><span class="nav-num">01</span> OAuth Login</a>
     <a href="{% url 'panel2-dashboard' %}" class="nav-item {% if active_tab == 'p2' %}active{% endif %}"><span class="nav-num">02</span> Analytics Dashboard</a>
@@ -36,6 +39,7 @@
     <a href="{% url 'panel8-config' %}" class="nav-item {% if active_tab == 'p8' %}active{% endif %}"><span class="nav-num">08</span> System Alerts &amp; Config</a>
     <a href="{% url 'overview-board' %}" class="nav-item {% if active_tab == 'overview' %}active{% endif %}" style="margin-left:auto; border-color:#334155;">⊞ 8-Panel Master Board</a>
   </nav>
+  {% endif %}
 
   <div id="toast-container"></div>
 

@@ -245,7 +245,15 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
     # ------------------------------------------------------------------
 
     def test_protected_routes_redirect_unauthenticated_to_login(self):
-        """All panel routes redirect to /login/?next=<path> when session is not set."""
+        """All panel routes redirect to /login/?next=<path> when session is not set, and /login/ hides module-nav."""
+        from django.test import Client
+        unauth_client = Client()
+        login_page = unauth_client.get(reverse('panel1-login'))
+        self.assertEqual(login_page.status_code, 200)
+        login_html = login_page.content.decode('utf-8')
+        self.assertNotIn('class="module-nav"', login_html)
+        self.assertNotIn('8-Panel Master Board', login_html)
+
         protected = [
             'home',
             'overview-board',
@@ -260,8 +268,6 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         for name in protected:
             url = reverse(name)
             with self.subTest(route=name):
-                # Fresh client per sub-test to guarantee no session leakage
-                from django.test import Client
                 fresh_client = Client()
                 response = fresh_client.get(url)
                 self.assertEqual(response.status_code, 302)

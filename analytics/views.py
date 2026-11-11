@@ -374,6 +374,9 @@ class InstitutionalSSOAPIView(APIView):
                 privacy_verified=True,
             )
 
+        request.session['empowered_authenticated'] = True
+        request.session['empowered_user_email'] = user.email
+
         return Response(
             {
                 'verified': True,
