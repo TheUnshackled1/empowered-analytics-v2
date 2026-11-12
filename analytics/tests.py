@@ -5,6 +5,7 @@ from django.urls import reverse
 from rest_framework.test import APIClient
 
 from .models import (
+    ABETCriterion,
     Course,
     CourseOutcomeMapping,
     DPAAuditLog,
@@ -319,3 +320,197 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         blocked = self.client.get(reverse('panel2-dashboard'))
         self.assertEqual(blocked.status_code, 302)
         self.assertIn('/login/', blocked['Location'])
+
+    # ------------------------------------------------------------------
+    # 80% working-software coverage: persistent ABET checklist, matrix
+    # add/clear, complete audit coverage, OAuth token, printable SSR
+    # ------------------------------------------------------------------
+
+    def _login(self):
+        return self.client.post(
+            reverse('session-login'), {'email': 'dean.cit@tip.edu.ph'}, format='json'
+        )
+
+    def _set_clearance(self, level):
+        return self.client.patch(
+            reverse('middleware-config-settings'),
+            {'active_clearance_level': level},
+            format='json',
+        )
+
+    def test_abet_checklist_seeded_persists_and_drives_panel02_kpi_and_audit(self):
+        """Panel 07 checklist is DB-backed, changes ABET KPI by 2 pts per criterion, and is audited."""
+        baseline = self.client.get(reverse('dashboard-state')).json()
+        self.assertEqual(ABETCriterion.objects.count(), 7)
+        self.assertEqual(baseline['abet']['locked_count'], 5)
+        self.assertEqual(baseline['abet']['ssr_pct'], 71)
+        self.assertEqual(baseline['kpis']['abet_accreditation'], 87)
+
+        res = self.client.patch(
+            reverse('abet-criteria'),
+            {'code': 'Criterion 5', 'locked': True},
+            format='json',
+        )
+        self.assertEqual(res.status_code, 200)
+        body = res.json()
+        self.assertEqual(body['abet']['locked_count'], 6)
+        self.assertEqual(
+            body['kpis']['abet_accreditation'] - baseline['kpis']['abet_accreditation'], 2
+        )
+        self.assertTrue(ABETCriterion.objects.get(code='Criterion 5').is_locked)
+        self.assertEqual(DPAAuditLog.objects.first().action, 'WRITE · ABET SSR')
+
+        # Unlocking two criteria moves the KPI down and the change survives a fresh read
+        for code in ('Criterion 1', 'Criterion 2'):
+            self.client.patch(
+                reverse('abet-criteria'), {'code': code, 'locked': False}, format='json'
+            )
+        state = self.client.get(reverse('dashboard-state')).json()
+        self.assertEqual(state['abet']['locked_count'], 4)
+        self.assertEqual(
+            state['kpis']['abet_accreditation'] - baseline['kpis']['abet_accreditation'], -2
+        )
+
+    def test_abet_checklist_enforces_rbac_and_rejects_unknown_criterion(self):
+        """Level 1 · Read locks the ABET checklist; unknown criteria return 404."""
+        self._set_clearance(1)
+        denied = self.client.patch(
+            reverse('abet-criteria'),
+            {'code': 'Criterion 5', 'locked': True},
+            format='json',
+        )
+        self.assertEqual(denied.status_code, 403)
+        self.assertFalse(ABETCriterion.objects.get(code='Criterion 5').is_locked)
+
+        self._set_clearance(2)
+        missing = self.client.patch(
+            reverse('abet-criteria'),
+            {'code': 'Criterion 99', 'locked': True},
+            format='json',
+        )
+        self.assertEqual(missing.status_code, 404)
+
+    def test_panel7_page_renders_persisted_checklist_state(self):
+        """Panel 07 page is server-rendered from the DB, so unlocked criteria stay unchecked."""
+        self._login()
+        self.client.patch(
+            reverse('abet-criteria'),
+            {'code': 'Criterion 1', 'locked': False},
+            format='json',
+        )
+        html = self.client.get(reverse('panel7-abet')).content.decode('utf-8')
+        self.assertNotIn('data-code="Criterion 1" data-title="Students" checked', html)
+        self.assertIn('data-code="Criterion 2" data-title="Program Educational Objectives" checked', html)
+        self.assertIn('4 of 7 sections locked', html)
+
+    def test_matrix_blank_cell_can_be_mapped_and_cleared_with_rbac(self):
+        """Blank cells can be mapped, '-' clears a mapping, coverage recalculates, Level 1 is blocked."""
+        url = reverse('course-matrix-mapping')
+        before = self.client.get(reverse('dashboard-state')).json()['kpis']['matrix_coverage']
+        self.assertEqual(CourseOutcomeMapping.objects.count(), 17)
+
+        # CPE 311 / SO4 is unmapped in the seed data
+        created = self.client.patch(
+            url, {'course_code': 'CPE 311', 'so_code': 'SO4', 'proficiency': 'I'}, format='json'
+        )
+        self.assertEqual(created.status_code, 200)
+        self.assertEqual(CourseOutcomeMapping.objects.count(), 18)
+        self.assertGreater(created.json()['kpis']['matrix_coverage'], before)
+
+        cleared = self.client.patch(
+            url, {'course_code': 'CPE 311', 'so_code': 'SO4', 'proficiency': '-'}, format='json'
+        )
+        self.assertEqual(cleared.status_code, 200)
+        self.assertEqual(CourseOutcomeMapping.objects.count(), 17)
+        self.assertFalse(
+            CourseOutcomeMapping.objects.filter(course__course_code='CPE 311', so_code='SO4').exists()
+        )
+        self.assertEqual(DPAAuditLog.objects.first().action, 'WRITE · SO Map')
+
+        self._set_clearance(1)
+        blocked = self.client.patch(
+            url, {'course_code': 'CPE 311', 'so_code': 'SO4', 'proficiency': 'R'}, format='json'
+        )
+        self.assertEqual(blocked.status_code, 403)
+        self.assertEqual(CourseOutcomeMapping.objects.count(), 17)
+
+    def test_panel08_rbac_and_alert_changes_are_audited_only_on_real_change(self):
+        """RBAC level changes and alert toggles write ledger rows; no-op updates do not."""
+        start = DPAAuditLog.objects.count()
+
+        res = self._set_clearance(3)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()['action'], 'AUTH · RBAC')
+        self.assertEqual(DPAAuditLog.objects.count(), start + 1)
+
+        noop = self._set_clearance(3)
+        self.assertEqual(noop.status_code, 200)
+        self.assertNotIn('action', noop.json())
+        self.assertEqual(DPAAuditLog.objects.count(), start + 1)
+
+        toggled = self.client.patch(
+            reverse('middleware-config-settings'),
+            {'alert_weekly_digest': True},
+            format='json',
+        )
+        self.assertEqual(toggled.status_code, 200)
+        self.assertEqual(toggled.json()['action'], 'WRITE · Alert')
+        self.assertEqual(DPAAuditLog.objects.first().action, 'WRITE · Alert')
+        self.assertEqual(DPAAuditLog.objects.count(), start + 2)
+
+    def test_login_issues_fresh_masked_oauth_token_and_audits_only_its_digest(self):
+        """Panel 01 issues a per-login OAuth token; API exposes only a masked form, never the raw token."""
+        first = self._login().json()
+        self.assertIn('oauth_token_masked', first)
+        self.assertTrue(first['oauth_token_masked'].startswith('tip_oauth_'))
+        raw_first = self.client.session['empowered_oauth_token']
+        self.assertNotIn(raw_first, str(first))
+        self.assertEqual(first['action'], 'AUTH · OAuth')
+
+        state = self.client.get(reverse('dashboard-state')).json()
+        self.assertEqual(state['oauth_token_masked'], first['oauth_token_masked'])
+        self.assertNotIn(raw_first, str(state))
+
+        self._login()
+        self.assertNotEqual(self.client.session['empowered_oauth_token'], raw_first)
+
+    def test_printable_abet_report_requires_auth_and_get_has_no_audit_side_effects(self):
+        """Print view is auth-guarded, pure-read, and only shows seals that exist in the ledger."""
+        from django.test import Client
+
+        anonymous = Client().get(reverse('abet-report-print'))
+        self.assertEqual(anonymous.status_code, 302)
+        self.assertIn('/login/', anonymous['Location'])
+
+        self._login()
+        before = DPAAuditLog.objects.count()
+        unsealed = self.client.get(reverse('abet-report-print'))
+        self.assertEqual(unsealed.status_code, 200)
+        self.assertIn('UNSEALED PREVIEW', unsealed.content.decode('utf-8'))
+        self.assertEqual(DPAAuditLog.objects.count(), before)
+
+        sealed = self.client.post(reverse('abet-print-seal'), {}, format='json')
+        self.assertEqual(sealed.status_code, 201)
+        seal_hash = sealed.json()['sha256_payload']
+        self.assertEqual(sealed.json()['action'], 'EXPORT · Print')
+        self.assertEqual(DPAAuditLog.objects.count(), before + 1)
+
+        page = self.client.get(reverse('abet-report-print'), {'seal': seal_hash})
+        html = page.content.decode('utf-8')
+        self.assertIn(seal_hash, html)
+        self.assertNotIn('UNSEALED PREVIEW', html)
+        self.assertIn('Criterion 1', html)
+        self.assertIn('CPE 616', html)
+        self.assertEqual(DPAAuditLog.objects.count(), before + 1)
+
+        forged = self.client.get(reverse('abet-report-print'), {'seal': 'deadbe…ffffff'})
+        self.assertIn('UNSEALED PREVIEW', forged.content.decode('utf-8'))
+
+    def test_overview_board_renders_db_backed_abet_and_clickable_blank_cells(self):
+        """Overview Panels 04 & 07 are server-rendered from the DB with clickable unmapped cells."""
+        self._login()
+        html = self.client.get(reverse('overview-board')).content.decode('utf-8')
+        self.assertIn('toggleCriterionOverview', html)
+        self.assertIn('tag-none', html)
+        self.assertIn('Print preview', html)
+        self.assertIn('5 of 7 sections locked', html)

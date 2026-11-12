@@ -80,11 +80,27 @@ function renderCourseMatrix(courses) {
     (course.outcomes || []).forEach(o => { map[o.so_code] = o.proficiency; });
     const cells = ['SO1', 'SO2', 'SO3', 'SO4'].map(so => {
       const prof = map[so];
-      if (!prof) return '<td>—</td>';
-      return `<td><span class="ier-pill tag-${escapeHtml(prof)}" data-course="${escapeHtml(course.course_code)}" data-so="${so}" onclick="cycleIER(this)">${escapeHtml(prof)}</span></td>`;
+      const attrs = `data-course="${escapeHtml(course.course_code)}" data-so="${so}" onclick="cycleIER(this)"`;
+      if (!prof) {
+        return `<td><span class="ier-pill tag-none" ${attrs} title="Unmapped · click to map">—</span></td>`;
+      }
+      return `<td><span class="ier-pill tag-${escapeHtml(prof)}" ${attrs}>${escapeHtml(prof)}</span></td>`;
     }).join('');
     return `<tr><td><strong>${escapeHtml(course.course_code)}</strong><br><span class="course-sub-lbl">${escapeHtml(course.course_title)}</span></td>${cells}</tr>`;
   }).join('');
+}
+
+function renderABET(abet) {
+  if (!abet) return;
+  document.getElementById('ssr-pct').textContent = abet.ssr_pct + '%';
+  document.getElementById('ssr-circle').setAttribute('stroke-dasharray', abet.ssr_pct + ', 100');
+  document.getElementById('ssr-count').textContent =
+    `${abet.locked_count} of ${abet.total_count} sections locked`;
+  (abet.criteria || []).forEach(crit => {
+    const box = Array.from(document.querySelectorAll('#criteria-list input[type="checkbox"]'))
+      .find(b => b.dataset.code === crit.code);
+    if (box) box.checked = !!crit.locked;
+  });
 }
 
 function renderAuditLogs(logs) {
@@ -121,6 +137,11 @@ async function loadDashboardState() {
     renderTelemetry(state.telemetry);
     renderCourseMatrix(state.course_matrix);
     renderAuditLogs(state.audit_logs);
+    renderABET(state.abet);
+    if (state.oauth_token_masked) {
+      const tokenEl = document.getElementById('sso-token-sub');
+      if (tokenEl) tokenEl.textContent = 'Token: ' + state.oauth_token_masked;
+    }
     if (state.config) {
       document.getElementById('api-key-field').value = state.config.api_secret_key;
       document.getElementById('sw-latency').classList.toggle('active', !!state.config.alert_high_latency);
@@ -159,18 +180,30 @@ async function verifyInstitutionalSSO() {
     if (res.ok) {
       const data = await res.json();
       document.getElementById('sso-status-sub').textContent = `Verified at ${data.timestamp} · L${data.clearance_level}`;
+      const tokenEl = document.getElementById('sso-token-sub');
+      if (tokenEl && data.oauth_token_masked) tokenEl.textContent = 'Token: ' + data.oauth_token_masked;
       prependAuditRow(data.timestamp, data.sha256_payload, data.action);
       showToast(`OAuth 2.0 + 2FA verified (${data.email})`);
     }
   } catch (_) {}
 }
 
+const OVERVIEW_MATRIX_CYCLE = ['I', 'E', 'R', '-'];
+
+function overviewMatrixValue(el) {
+  const txt = el.textContent.trim();
+  return txt === '—' || txt === '' ? '-' : txt;
+}
+
+function paintOverviewPill(el, value) {
+  el.textContent = value === '-' ? '—' : value;
+  el.className = 'ier-pill ' + (value === '-' ? 'tag-none' : 'tag-' + value);
+}
+
 async function cycleIER(el) {
-  const order = ['I', 'E', 'R'];
-  const prev = el.textContent.trim();
-  const next = order[(order.indexOf(prev) + 1) % order.length];
-  el.textContent = next;
-  el.className = 'ier-pill tag-' + next;
+  const prev = overviewMatrixValue(el);
+  const next = OVERVIEW_MATRIX_CYCLE[(OVERVIEW_MATRIX_CYCLE.indexOf(prev) + 1) % OVERVIEW_MATRIX_CYCLE.length];
+  paintOverviewPill(el, next);
   try {
     const res = await fetch('/api/v2/matrix/mapping/', {
       method: 'PATCH',
@@ -179,8 +212,7 @@ async function cycleIER(el) {
     });
     if (res.status === 403) {
       const err = await res.json();
-      el.textContent = prev;
-      el.className = 'ier-pill tag-' + prev;
+      paintOverviewPill(el, prev);
       showToast(err.detail || 'RBAC: Write clearance required', 'warn');
       return;
     }
@@ -188,21 +220,63 @@ async function cycleIER(el) {
       const data = await res.json();
       renderKPIs(data.kpis);
       prependAuditRow(data.timestamp, data.sha256_payload, data.action);
-      showToast(`${el.dataset.course} · ${el.dataset.so} updated to [${next}]`);
+      const label = next === '-' ? 'cleared' : `updated to [${next}]`;
+      showToast(`${el.dataset.course} · ${el.dataset.so} ${label}`);
+      return;
+    }
+    paintOverviewPill(el, prev);
+  } catch (_) {
+    paintOverviewPill(el, prev);
+  }
+}
+
+async function toggleCriterionOverview(box) {
+  const wanted = box.checked;
+  try {
+    const res = await fetch('/api/v2/abet/criteria/', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: box.dataset.code, locked: wanted }),
+    });
+    if (res.status === 403) {
+      const err = await res.json();
+      box.checked = !wanted;
+      showToast(err.detail || 'RBAC: Level 2 clearance required', 'warn');
+      return;
+    }
+    if (res.ok) {
+      const data = await res.json();
+      renderABET(data.abet);
+      renderKPIs(data.kpis);
+      prependAuditRow(data.timestamp, data.sha256_payload, data.action);
+      showToast(`${data.code} ${data.locked ? 'locked' : 'reopened'} · saved`);
+      return;
+    }
+    box.checked = !wanted;
+  } catch (_) {
+    box.checked = !wanted;
+  }
+}
+
+async function openOverviewPrintPreview(event) {
+  if (event) event.preventDefault();
+  try {
+    const res = await fetch('/api/v2/reports/abet-print-seal/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      prependAuditRow(data.timestamp, data.sha256_payload, data.action);
+      showToast('Printable SSR sealed & logged');
+      window.open('/abet-report/print/?seal=' + encodeURIComponent(data.sha256_payload), '_blank');
     }
   } catch (_) {}
 }
 
-function recalcABET() {
-  const boxes = document.querySelectorAll('#criteria-list input[type="checkbox"]');
-  const checked = Array.from(boxes).filter(b => b.checked).length;
-  const pct = Math.round((checked / boxes.length) * 100);
-  document.getElementById('ssr-pct').textContent = pct + '%';
-  document.getElementById('ssr-circle').setAttribute('stroke-dasharray', pct + ', 100');
-  document.getElementById('ssr-count').textContent = checked + ' of ' + boxes.length + ' sections locked';
-}
-
 async function setRBAC(el, level) {
+  const previous = Number(document.querySelector('#rbac-selector .rbac-box.selected')?.dataset.level || 2);
   applyRBACSelectionUI(level);
   try {
     const res = await fetch('/api/v2/config/settings/', {
@@ -210,8 +284,16 @@ async function setRBAC(el, level) {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ active_clearance_level: level }),
     });
-    if (res.ok) showToast(`Clearance switched to Level ${level}`);
-  } catch (_) {}
+    if (res.ok) {
+      const data = await res.json();
+      if (data.sha256_payload) prependAuditRow(data.timestamp, data.sha256_payload, data.action);
+      showToast(`Clearance switched to Level ${level}`);
+      return;
+    }
+    applyRBACSelectionUI(previous);
+  } catch (_) {
+    applyRBACSelectionUI(previous);
+  }
 }
 
 async function toggleAlertSwitch(el, fieldName) {
@@ -227,18 +309,22 @@ async function toggleAlertSwitch(el, fieldName) {
       const err = await res.json();
       el.classList.toggle('active', !nextState);
       showToast(err.detail || 'RBAC: Level 2 clearance required', 'warn');
+      return;
+    }
+    if (res.ok) {
+      const data = await res.json();
+      if (data.sha256_payload) prependAuditRow(data.timestamp, data.sha256_payload, data.action);
     }
   } catch (_) {}
 }
 
 async function exportABETReport() {
-  const boxes = document.querySelectorAll('#criteria-list input[type="checkbox"]');
-  const criteria = Array.from(boxes).map(b => ({ code: b.dataset.code, title: b.dataset.title, locked: b.checked }));
+  // Server compiles the PDF from the persisted ABET checklist.
   try {
     const res = await fetch('/api/v2/reports/abet-ssr/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ criteria }),
+      body: JSON.stringify({}),
     });
     if (res.ok) {
       const blob = await res.blob();
@@ -281,7 +367,6 @@ window.onCanvasSynced = function () {
 };
 
 document.addEventListener('DOMContentLoaded', () => {
-  recalcABET();
   loadDashboardState();
 });
 

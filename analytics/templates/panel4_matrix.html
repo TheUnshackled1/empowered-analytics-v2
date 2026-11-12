@@ -34,7 +34,7 @@
           {% if cell.proficiency %}
           <span class="ier-pill tag-{{ cell.proficiency }}" data-course="{{ row.course_code }}" data-so="{{ cell.so_code }}" onclick="cycle(this)">{{ cell.proficiency }}</span>
           {% else %}
-          —
+          <span class="ier-pill tag-none" data-course="{{ row.course_code }}" data-so="{{ cell.so_code }}" onclick="cycle(this)" title="Unmapped · click to map as Introductory">—</span>
           {% endif %}
         </td>
         {% endfor %}

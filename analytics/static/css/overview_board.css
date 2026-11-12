@@ -396,6 +396,19 @@
   cursor: pointer;
 }
 
+.print-preview-link {
+  display: block;
+  margin-top: 6px;
+  font-size: 9px;
+  color: var(--text-sub);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+.print-preview-link:hover {
+  color: var(--gold);
+}
+
 .ssr-count-lbl {
   font-size: 9px;
   color: var(--text-sub);

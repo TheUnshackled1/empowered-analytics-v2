@@ -30,7 +30,8 @@
     </div>
     <div class="oauth-verified">
       ✓ <strong>2FA · OAuth Verified</strong><br>
-      <span id="sso-status-sub" style="font-size: 9px; color: var(--text-sub);">Authenticated via institutional sign-in</span>
+      <span id="sso-status-sub" style="font-size: 9px; color: var(--text-sub);">Authenticated via institutional sign-in</span><br>
+      <span id="sso-token-sub" style="font-size: 9px; color: var(--gold); font-family: monospace;"></span>
     </div>
     <div style="text-align: center; font-size: 9px; color: var(--text-muted);">Secured via OAuth 2.0 container</div>
   </section>
@@ -166,7 +167,9 @@
           <td>
             {% if cell.proficiency %}
             <span class="ier-pill tag-{{ cell.proficiency }}" data-course="{{ row.course_code }}" data-so="{{ cell.so_code }}" onclick="cycleIER(this)">{{ cell.proficiency }}</span>
-            {% else %}—{% endif %}
+            {% else %}
+            <span class="ier-pill tag-none" data-course="{{ row.course_code }}" data-so="{{ cell.so_code }}" onclick="cycleIER(this)" title="Unmapped · click to map">—</span>
+            {% endif %}
           </td>
           {% endfor %}
         </tr>
@@ -269,24 +272,21 @@
     </div>
     <div class="abet-split">
       <div id="criteria-list">
-        <label class="crit-item"><input type="checkbox" data-code="Criterion 1" data-title="Students" checked onchange="recalcABET()"> Criterion 1 · Students</label>
-        <label class="crit-item"><input type="checkbox" data-code="Criterion 2" data-title="Program Educational Objectives" checked onchange="recalcABET()"> Criterion 2 · Program Educational Objectives</label>
-        <label class="crit-item"><input type="checkbox" data-code="Criterion 3" data-title="Student Outcomes" checked onchange="recalcABET()"> Criterion 3 · Student Outcomes</label>
-        <label class="crit-item"><input type="checkbox" data-code="Criterion 4" data-title="Continuous Improvement" checked onchange="recalcABET()"> Criterion 4 · Continuous Improvement</label>
-        <label class="crit-item"><input type="checkbox" data-code="Criterion 5" data-title="Curriculum" onchange="recalcABET()"> Criterion 5 · Curriculum</label>
-        <label class="crit-item"><input type="checkbox" data-code="Criterion 6" data-title="Faculty" checked onchange="recalcABET()"> Criterion 6 · Faculty</label>
-        <label class="crit-item"><input type="checkbox" data-code="Criterion 7" data-title="Facilities" onchange="recalcABET()"> Criterion 7 · Facilities</label>
+        {% for crit in abet.criteria %}
+        <label class="crit-item"><input type="checkbox" data-code="{{ crit.code }}" data-title="{{ crit.title }}" {% if crit.locked %}checked{% endif %} onchange="toggleCriterionOverview(this)"> {{ crit.code }} · {{ crit.title }}</label>
+        {% endfor %}
       </div>
       <div style="text-align: center;">
         <div class="donut-wrap" style="width:86px; height:86px;">
           <svg width="86" height="86" viewBox="0 0 36 36">
             <circle cx="18" cy="18" r="15.5" fill="none" stroke="#1e293b" stroke-width="3.5"></circle>
-            <circle id="ssr-circle" cx="18" cy="18" r="15.5" fill="none" stroke="#10b981" stroke-width="3.5" stroke-dasharray="71, 100" transform="rotate(-90 18 18)"></circle>
+            <circle id="ssr-circle" cx="18" cy="18" r="15.5" fill="none" stroke="#10b981" stroke-width="3.5" stroke-dasharray="{{ abet.ssr_pct }}, 100" transform="rotate(-90 18 18)"></circle>
           </svg>
-          <div class="donut-val" id="ssr-pct">71%</div>
+          <div class="donut-val" id="ssr-pct">{{ abet.ssr_pct }}%</div>
         </div>
-        <div style="font-size:9px; color:var(--text-sub); margin:4px 0 10px;" id="ssr-count">5 of 7 sections locked</div>
+        <div style="font-size:9px; color:var(--text-sub); margin:4px 0 10px;" id="ssr-count">{{ abet.locked_count }} of {{ abet.total_count }} sections locked</div>
         <button class="btn-gold" onclick="exportABETReport()">PDF Report</button>
+        <a href="#" class="print-preview-link" onclick="openOverviewPrintPreview(event)">Print preview ↗</a>
       </div>
     </div>
   </section>

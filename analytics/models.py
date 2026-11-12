@@ -101,6 +101,21 @@ class DPAAuditLog(models.Model):
         return f"{full_hash[:6]}…{full_hash[-6:]}"
 
 
+class ABETCriterion(models.Model):
+    """Persistent Panel 07 ABET Self-Study checklist (Criterion 1-7)."""
+    code = models.CharField(max_length=20, unique=True)   # e.g., Criterion 1
+    title = models.CharField(max_length=120)              # e.g., Students
+    is_locked = models.BooleanField(default=False)
+    sort_order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['sort_order', 'id']
+
+    def __str__(self):
+        state = 'LOCKED' if self.is_locked else 'OPEN'
+        return f"{self.code} · {self.title} [{state}]"
+
+
 class MiddlewareConfig(models.Model):
     """Singleton operational config backing Panel 08 alerts, secret key, and active RBAC clearance."""
     api_secret_key = models.CharField(max_length=64, default='tip_live_98a7bc65d4e3f210')

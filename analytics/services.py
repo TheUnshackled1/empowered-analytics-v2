@@ -9,6 +9,7 @@ from django.db.models import Avg
 from django.utils import timezone
 
 from .models import (
+    ABETCriterion,
     Course,
     CourseOutcomeMapping,
     DPAAuditLog,
@@ -17,6 +18,19 @@ from .models import (
     StudentCompetencyRecord,
     SyncTelemetryLog,
 )
+
+
+SEED_ABET_CRITERIA = [
+    ('Criterion 1', 'Students', True),
+    ('Criterion 2', 'Program Educational Objectives', True),
+    ('Criterion 3', 'Student Outcomes', True),
+    ('Criterion 4', 'Continuous Improvement', True),
+    ('Criterion 5', 'Curriculum', False),
+    ('Criterion 6', 'Faculty', True),
+    ('Criterion 7', 'Facilities', False),
+]
+# Seed baseline: 5 of 7 criteria locked -> KPI baseline (ABET 87%) is unchanged at seed time.
+ABET_BASELINE_LOCKED = 5
 
 
 SEED_COURSES = [
@@ -71,8 +85,15 @@ def ensure_seed_data(reset: bool = False) -> dict:
                 SyncTelemetryLog.objects.all().delete()
                 DPAAuditLog.objects.all().delete()
                 MiddlewareConfig.objects.all().delete()
+                ABETCriterion.objects.all().delete()
 
             MiddlewareConfig.load()
+
+            if ABETCriterion.objects.count() == 0:
+                for idx, (code, title, locked) in enumerate(SEED_ABET_CRITERIA, start=1):
+                    ABETCriterion.objects.create(
+                        code=code, title=title, is_locked=locked, sort_order=idx
+                    )
 
             user, created_user = InstitutionalUser.objects.get_or_create(
                 username='student.id@tip.edu.ph',
@@ -148,6 +169,21 @@ def ensure_seed_data(reset: bool = False) -> dict:
         return {}
 
 
+def build_abet_state() -> dict:
+    """Persistent Panel 07 ABET checklist state used by every panel and the printable SSR."""
+    rows = list(ABETCriterion.objects.all())
+    total = len(rows)
+    locked = sum(1 for r in rows if r.is_locked)
+    return {
+        'criteria': [
+            {'code': r.code, 'title': r.title, 'locked': r.is_locked} for r in rows
+        ],
+        'locked_count': locked,
+        'total_count': total,
+        'ssr_pct': int(round((locked / total) * 100)) if total else 0,
+    }
+
+
 def compute_dashboard_metrics() -> dict:
     """Calculate live OBE KPIs, 5-bar competencies, 6-axis radar scores, and telemetry series."""
     agg = StudentCompetencyRecord.objects.aggregate(
@@ -190,11 +226,21 @@ def compute_dashboard_metrics() -> dict:
     proficiency_sum = sum(weight_map.get(m.proficiency, 1) for m in mappings)
 
     overall_comp = (knowledge + skills + values + capstone + internship) / 5.0
+    abet_state = build_abet_state()
+    # Each criterion locked above/below the seeded baseline moves ABET accreditation by +/- 2 pts.
+    abet_checklist_delta = (
+        (abet_state['locked_count'] - ABET_BASELINE_LOCKED) * 2.0
+        if abet_state['total_count']
+        else 0.0
+    )
     matrix_coverage = round(
         min(99.9, max(0.0, 72.4 + (mapped_cells / max_cells) * 20.0 + (proficiency_sum - 34) * 0.2)),
         1,
     )
-    abet_pct = int(round(min(99.0, max(50.0, overall_comp + 4.0 + (proficiency_sum - 34) * 0.3))))
+    abet_pct = int(round(min(
+        99.0,
+        max(50.0, overall_comp + 4.0 + (proficiency_sum - 34) * 0.3 + abet_checklist_delta),
+    )))
     ched_pct = int(round(min(99.0, max(50.0, overall_comp + 9.0 + (mapped_cells - 17) * 0.5))))
     deficit = round(
         max(0.0, 100.0 - overall_comp + 0.6 - (proficiency_sum - 34) * 0.15),
@@ -223,6 +269,7 @@ def compute_dashboard_metrics() -> dict:
         },
         'competencies': competencies,
         'radar': radar,
+        'abet': abet_state,
         'telemetry': {
             'latency_avg_ms': latency_avg,
             'throughput_pkts': throughput_latest,
@@ -254,16 +301,18 @@ def build_abet_ssr_pdf(criteria: list[dict], audit_hash: str) -> bytes:
     comp = metrics['competencies']
     courses = Course.objects.prefetch_related('outcomes').all()
 
-    default_criteria = [
-        {'code': 'Criterion 1', 'title': 'Students', 'locked': True},
-        {'code': 'Criterion 2', 'title': 'Program Educational Objectives', 'locked': True},
-        {'code': 'Criterion 3', 'title': 'Student Outcomes', 'locked': True},
-        {'code': 'Criterion 4', 'title': 'Continuous Improvement', 'locked': True},
-        {'code': 'Criterion 5', 'title': 'Curriculum', 'locked': False},
-        {'code': 'Criterion 6', 'title': 'Faculty', 'locked': True},
-        {'code': 'Criterion 7', 'title': 'Facilities', 'locked': False},
-    ]
-    criteria_rows = criteria if criteria else default_criteria
+    # Persistent DB checklist is the source of truth; client payload is only a fallback.
+    db_criteria = build_abet_state()['criteria']
+    if db_criteria:
+        criteria_rows = [
+            {'code': c['code'], 'title': c['title'], 'locked': c['locked']} for c in db_criteria
+        ]
+    else:
+        default_criteria = [
+            {'code': code, 'title': title, 'locked': locked}
+            for code, title, locked in SEED_ABET_CRITERIA
+        ]
+        criteria_rows = criteria if criteria else default_criteria
     locked_count = sum(1 for c in criteria_rows if c.get('locked'))
     readiness_pct = int(round((locked_count / max(1, len(criteria_rows))) * 100))
 

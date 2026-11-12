@@ -1,24 +1,48 @@
-function calcSSR() {
-  const boxes = document.querySelectorAll('#crit-box input');
-  const checked = Array.from(boxes).filter(b => b.checked).length;
-  const pct = Math.round((checked / boxes.length) * 100);
-  document.getElementById('ssr-text').textContent = pct + '%';
-  document.getElementById('ssr-ring').setAttribute('stroke-dasharray', pct + ', 100');
-  document.getElementById('ssr-label').textContent = `${checked} of ${boxes.length} sections locked`;
+function renderSSR(abet) {
+  if (!abet) return;
+  document.getElementById('ssr-text').textContent = abet.ssr_pct + '%';
+  document.getElementById('ssr-ring').setAttribute('stroke-dasharray', abet.ssr_pct + ', 100');
+  document.getElementById('ssr-label').textContent =
+    `${abet.locked_count} of ${abet.total_count} sections locked`;
+}
+
+async function toggleCriterion(box) {
+  const wanted = box.checked;
+  try {
+    const res = await fetch('/api/v2/abet/criteria/', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code: box.dataset.code, locked: wanted }),
+    });
+    if (res.status === 403) {
+      const err = await res.json();
+      box.checked = !wanted;
+      showToast(err.detail || 'RBAC: Level 2 clearance required', 'warn');
+      return;
+    }
+    if (res.ok) {
+      const data = await res.json();
+      renderSSR(data.abet);
+      showToast(
+        `${data.code} ${data.locked ? 'locked' : 'reopened'} · saved (Hash: ${data.sha256_payload})`
+      );
+      return;
+    }
+    box.checked = !wanted;
+    showToast('Unable to save ABET checklist.', 'error');
+  } catch (_) {
+    box.checked = !wanted;
+    showToast('Unable to reach server.', 'error');
+  }
 }
 
 async function downloadABETReport() {
-  const boxes = document.querySelectorAll('#crit-box input');
-  const criteria = Array.from(boxes).map(b => ({
-    code: b.dataset.code,
-    title: b.dataset.title,
-    locked: b.checked,
-  }));
+  // The server compiles the PDF from the persisted checklist, not from browser state.
   try {
     const res = await fetch('/api/v2/reports/abet-ssr/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ criteria }),
+      body: JSON.stringify({}),
     });
     if (res.ok) {
       const blob = await res.blob();
@@ -34,7 +58,25 @@ async function downloadABETReport() {
       showToast(`ABET SSR PDF downloaded & logged (${hash})`);
       return;
     }
-  } catch (_) {}
-  window.print();
+    showToast('PDF export failed.', 'error');
+  } catch (_) {
+    showToast('Unable to reach server.', 'error');
+  }
 }
 
+async function openPrintPreview() {
+  try {
+    const res = await fetch('/api/v2/reports/abet-print-seal/', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({}),
+    });
+    if (res.ok) {
+      const data = await res.json();
+      showToast(`Printable SSR sealed & logged (${data.sha256_payload})`);
+      window.open('/abet-report/print/?seal=' + encodeURIComponent(data.sha256_payload), '_blank');
+      return;
+    }
+  } catch (_) {}
+  showToast('Unable to seal printable report.', 'error');
+}

@@ -12,29 +12,28 @@
       <span class="badge-num">07</span>
       <span class="panel-title">ABET Self-Study Report PDF Export Portal</span>
     </div>
-    <span class="abet-seal-note">Server-Side PDF Compiler · RA 10173 Sealed</span>
+    <span class="abet-seal-note">Persistent Checklist · Server-Side PDF Compiler · RA 10173 Sealed</span>
   </div>
 
   <div class="abet-export-grid">
     <div id="crit-box" class="criteria-checklist">
-      <label><input type="checkbox" data-code="Criterion 1" data-title="Students" checked onchange="calcSSR()"> Criterion 1 · Students</label>
-      <label><input type="checkbox" data-code="Criterion 2" data-title="Program Educational Objectives" checked onchange="calcSSR()"> Criterion 2 · Program Educational Objectives</label>
-      <label><input type="checkbox" data-code="Criterion 3" data-title="Student Outcomes (SO1-SO4)" checked onchange="calcSSR()"> Criterion 3 · Student Outcomes (SO1–SO4)</label>
-      <label><input type="checkbox" data-code="Criterion 4" data-title="Continuous Improvement" checked onchange="calcSSR()"> Criterion 4 · Continuous Improvement</label>
-      <label><input type="checkbox" data-code="Criterion 5" data-title="Curriculum Alignment" onchange="calcSSR()"> Criterion 5 · Curriculum Alignment</label>
-      <label><input type="checkbox" data-code="Criterion 6" data-title="Faculty Qualifications" checked onchange="calcSSR()"> Criterion 6 · Faculty Qualifications</label>
-      <label><input type="checkbox" data-code="Criterion 7" data-title="Institutional Facilities" onchange="calcSSR()"> Criterion 7 · Institutional Facilities</label>
+      {% for crit in abet.criteria %}
+      <label>
+        <input type="checkbox" data-code="{{ crit.code }}" data-title="{{ crit.title }}" {% if crit.locked %}checked{% endif %} onchange="toggleCriterion(this)">
+        {{ crit.code }} · {{ crit.title }}
+      </label>
+      {% endfor %}
     </div>
 
     <div class="ssr-gauge-box">
       <svg width="130" height="130" viewBox="0 0 36 36">
         <circle cx="18" cy="18" r="15.5" fill="none" stroke="#1e293b" stroke-width="3.5"></circle>
-        <circle id="ssr-ring" cx="18" cy="18" r="15.5" fill="none" stroke="#10b981" stroke-width="3.5" stroke-dasharray="71, 100" transform="rotate(-90 18 18)"></circle>
-        <text id="ssr-text" x="18" y="20.5" fill="#f8fafc" font-size="7" font-weight="800" text-anchor="middle">71%</text>
+        <circle id="ssr-ring" cx="18" cy="18" r="15.5" fill="none" stroke="#10b981" stroke-width="3.5" stroke-dasharray="{{ abet.ssr_pct }}, 100" transform="rotate(-90 18 18)"></circle>
+        <text id="ssr-text" x="18" y="20.5" fill="#f8fafc" font-size="7" font-weight="800" text-anchor="middle">{{ abet.ssr_pct }}%</text>
       </svg>
-      <div id="ssr-label" class="ssr-locked-label">5 of 7 sections locked</div>
+      <div id="ssr-label" class="ssr-locked-label">{{ abet.locked_count }} of {{ abet.total_count }} sections locked</div>
       <button class="btn-gold btn-download-ssr" onclick="downloadABETReport()">Download ABET SSR PDF Report</button>
-      <button class="status-pill btn-print-secondary" onclick="window.print()">Print Browser View</button>
+      <button class="status-pill btn-print-secondary" onclick="openPrintPreview()">Print preview ↗ (Save as PDF)</button>
     </div>
   </div>
 </div>

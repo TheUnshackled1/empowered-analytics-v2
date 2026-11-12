@@ -15,6 +15,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from .models import (
+    ABETCriterion,
     Course,
     CourseOutcomeMapping,
     DPAAuditLog,
@@ -24,6 +25,7 @@ from .models import (
     SyncTelemetryLog,
 )
 from .serializers import (
+    ABETCriterionToggleSerializer,
     ABETReportExportSerializer,
     CanvasWebhookIngestSerializer,
     CourseMatrixSerializer,
@@ -32,7 +34,12 @@ from .serializers import (
     MatrixCellUpdateSerializer,
     MiddlewareConfigSerializer,
 )
-from .services import build_abet_ssr_pdf, compute_dashboard_metrics, ensure_seed_data
+from .services import (
+    build_abet_ssr_pdf,
+    build_abet_state,
+    compute_dashboard_metrics,
+    ensure_seed_data,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -51,9 +58,44 @@ def _empowered_login_required(view_func):
     return _wrapped
 
 
+def _write_audit(event: dict, action: str) -> tuple:
+    """Persist an RA 10173 SHA-256 audit ledger row and return (entry, short_hash)."""
+    raw_event = json.dumps({**event, 'ts': timezone.now().isoformat()}, default=str, sort_keys=True)
+    short_hash = DPAAuditLog.generate_hash(raw_event)
+    entry = DPAAuditLog.objects.create(
+        sha256_payload=short_hash,
+        action=action,
+        privacy_verified=True,
+    )
+    return entry, short_hash
+
+
+def _audit_payload(entry, short_hash: str) -> dict:
+    return {
+        'timestamp': entry.timestamp.strftime('%H:%M:%S'),
+        'sha256_payload': short_hash,
+        'action': entry.action,
+    }
+
+
+def _issue_oauth_token() -> str:
+    """Fresh per-login OAuth 2.0 access token (separate from the Panel 08 API secret key)."""
+    return f"tip_oauth_{secrets.token_hex(12)}"
+
+
+def _mask_token(token) -> str:
+    if not token:
+        return ''
+    return f"{token[:14]}••••••••{token[-4:]}"
+
+
 def seed_initial_data():
     """Seeds initial T.I.P. CPE courses, competencies, telemetry, and DPA audit logs if empty."""
-    if not Course.objects.exists() or not DPAAuditLog.objects.exists():
+    if (
+        not Course.objects.exists()
+        or not DPAAuditLog.objects.exists()
+        or not ABETCriterion.objects.exists()
+    ):
         ensure_seed_data()
 
 
@@ -99,6 +141,7 @@ def overview_board_view(request):
             'active_tab': 'overview',
             'matrix_rows': matrix_rows,
             'logs': logs,
+            'abet': build_abet_state(),
         },
     )
 
@@ -197,7 +240,40 @@ def panel6_audit_view(request):
 @_empowered_login_required
 def panel7_abet_view(request):
     seed_initial_data()
-    return render(request, 'panel7_abet.html', {'active_tab': 'p7'})
+    return render(
+        request,
+        'panel7_abet.html',
+        {'active_tab': 'p7', 'abet': build_abet_state()},
+    )
+
+
+@_empowered_login_required
+def abet_report_print_view(request):
+    """
+    Official printable ABET & CHED OBE Self-Study Report (browser Save-as-PDF).
+    Pure-read GET: it never writes to the audit ledger. The seal hash is only displayed
+    when it matches a real EXPORT audit row created via POST /api/v2/reports/abet-print-seal/.
+    """
+    seed_initial_data()
+    metrics = compute_dashboard_metrics()
+    _, matrix_rows = _build_matrix_rows()
+    seal = request.GET.get('seal', '').strip()
+    sealed = bool(seal) and DPAAuditLog.objects.filter(
+        sha256_payload=seal, action__startswith='EXPORT'
+    ).exists()
+    return render(
+        request,
+        'abet_report_print.html',
+        {
+            'kpis': metrics['kpis'],
+            'comp': metrics['competencies'],
+            'abet': metrics['abet'],
+            'matrix_rows': matrix_rows,
+            'seal_hash': seal if sealed else '',
+            'is_sealed': sealed,
+            'generated_at': timezone.localtime(),
+        },
+    )
 
 
 @_empowered_login_required
@@ -214,12 +290,6 @@ def panel8_config_view(request):
             'webhook_url': webhook_url,
         },
     )
-
-
-def empowered_session_logout_view(request):
-    """Clear the EmpowerED session and redirect to the login page."""
-    request.session.flush()
-    return redirect('panel1-login')
 
 
 def empowered_session_logout_view(request):
@@ -334,9 +404,11 @@ class DashboardStateAPIView(APIView):
                 'competencies': metrics['competencies'],
                 'radar': metrics['radar'],
                 'telemetry': metrics['telemetry'],
+                'abet': metrics['abet'],
                 'course_matrix': courses,
                 'audit_logs': audits,
                 'config': MiddlewareConfigSerializer(config).data,
+                'oauth_token_masked': _mask_token(request.session.get('empowered_oauth_token')),
                 'sso_user': {
                     'email': user.email if user else 'dean.cit@tip.edu.ph',
                     'role': user.role if user else 'DEAN',
@@ -371,18 +443,16 @@ class InstitutionalSSOAPIView(APIView):
             user.oauth_2fa_verified = True
             user.save(update_fields=['oauth_2fa_verified'])
 
-            raw_event = json.dumps(
-                {'email': email, 'ts': timezone.now().isoformat(), 'provider': 'tip-microsoft-sso'}
-            )
-            short_hash = DPAAuditLog.generate_hash(raw_event)
-            audit_entry = DPAAuditLog.objects.create(
-                sha256_payload=short_hash,
-                action='AUTH · OAuth',
-                privacy_verified=True,
+            oauth_token = _issue_oauth_token()
+            token_digest = hashlib.sha256(oauth_token.encode('utf-8')).hexdigest()
+            audit_entry, short_hash = _write_audit(
+                {'email': email, 'provider': 'tip-microsoft-sso', 'token_sha256': token_digest},
+                'AUTH · OAuth',
             )
 
         request.session['empowered_authenticated'] = True
         request.session['empowered_user_email'] = user.email
+        request.session['empowered_oauth_token'] = oauth_token
 
         return Response(
             {
@@ -390,9 +460,8 @@ class InstitutionalSSOAPIView(APIView):
                 'email': user.email,
                 'role': user.role,
                 'clearance_level': config.active_clearance_level,
-                'timestamp': audit_entry.timestamp.strftime('%H:%M:%S'),
-                'sha256_payload': short_hash,
-                'action': audit_entry.action,
+                'oauth_token_masked': _mask_token(oauth_token),
+                **_audit_payload(audit_entry, short_hash),
             }
         )
 
@@ -410,14 +479,12 @@ class EmpowerEdSessionLoginAPIView(APIView):
         email = request.data.get('email', 'dean.cit@tip.edu.ph')
         config = MiddlewareConfig.load()
 
-        raw_event = json.dumps(
-            {'email': email, 'ts': timezone.now().isoformat(), 'provider': 'tip-microsoft-sso'}
-        )
-        short_hash = DPAAuditLog.generate_hash(raw_event)
-        audit_entry = DPAAuditLog.objects.create(
-            sha256_payload=short_hash,
-            action='AUTH · OAuth',
-            privacy_verified=True,
+        # Fresh OAuth 2.0 bearer token for this login; only its SHA-256 digest enters the ledger.
+        oauth_token = _issue_oauth_token()
+        token_digest = hashlib.sha256(oauth_token.encode('utf-8')).hexdigest()
+        audit_entry, short_hash = _write_audit(
+            {'email': email, 'provider': 'tip-microsoft-sso', 'token_sha256': token_digest},
+            'AUTH · OAuth',
         )
 
         # Establish or refresh the institutional user record
@@ -437,14 +504,15 @@ class EmpowerEdSessionLoginAPIView(APIView):
         # Mark the Django session as authenticated
         request.session['empowered_authenticated'] = True
         request.session['empowered_user_email'] = email
+        request.session['empowered_oauth_token'] = oauth_token
 
         return Response(
             {
                 'verified': True,
                 'email': email,
                 'clearance_level': config.active_clearance_level,
-                'timestamp': audit_entry.timestamp.strftime('%H:%M:%S'),
-                'sha256_payload': short_hash,
+                'oauth_token_masked': _mask_token(oauth_token),
+                **_audit_payload(audit_entry, short_hash),
             }
         )
 
@@ -473,38 +541,98 @@ class CourseOutcomeMappingAPIView(APIView):
                 course_code=data['course_code'],
                 defaults={'course_title': 'Mapped Engineering Course'},
             )
-            mapping, _ = CourseOutcomeMapping.objects.update_or_create(
-                course=course,
-                so_code=data['so_code'],
-                defaults={'proficiency': data['proficiency']},
-            )
-            raw_event = json.dumps(
+            if data['proficiency'] == '-':
+                # '-' clears the mapping: the cell returns to an unmapped em dash
+                CourseOutcomeMapping.objects.filter(
+                    course=course, so_code=data['so_code']
+                ).delete()
+            else:
+                CourseOutcomeMapping.objects.update_or_create(
+                    course=course,
+                    so_code=data['so_code'],
+                    defaults={'proficiency': data['proficiency']},
+                )
+            audit_entry, short_hash = _write_audit(
                 {
                     'course_code': course.course_code,
-                    'so_code': mapping.so_code,
-                    'proficiency': mapping.proficiency,
-                    'ts': timezone.now().isoformat(),
-                }
-            )
-            short_hash = DPAAuditLog.generate_hash(raw_event)
-            audit_entry = DPAAuditLog.objects.create(
-                sha256_payload=short_hash,
-                action='WRITE · SO Map',
-                privacy_verified=True,
+                    'so_code': data['so_code'],
+                    'proficiency': data['proficiency'],
+                },
+                'WRITE · SO Map',
             )
 
         metrics = compute_dashboard_metrics()
         return Response(
             {
                 'course_code': course.course_code,
-                'so_code': mapping.so_code,
-                'proficiency': mapping.proficiency,
+                'so_code': data['so_code'],
+                'proficiency': data['proficiency'],
                 'kpis': metrics['kpis'],
-                'timestamp': audit_entry.timestamp.strftime('%H:%M:%S'),
-                'sha256_payload': short_hash,
-                'action': audit_entry.action,
+                **_audit_payload(audit_entry, short_hash),
             }
         )
+
+
+class ABETCriterionToggleAPIView(APIView):
+    """Panel 07: Persists an ABET Criterion lock/unlock (RBAC Level >= 2) and logs SHA-256."""
+    authentication_classes = []
+    permission_classes = []
+
+    def patch(self, request):
+        config = MiddlewareConfig.load()
+        if config.active_clearance_level < 2:
+            return Response(
+                {
+                    'detail': 'RBAC Restriction: Level 2 · Write or Level 3 · Admin clearance required to edit the ABET checklist.'
+                },
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        seed_initial_data()
+        serializer = ABETCriterionToggleSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        data = serializer.validated_data
+
+        criterion = ABETCriterion.objects.filter(code=data['code']).first()
+        if criterion is None:
+            return Response(
+                {'detail': f"Unknown ABET criterion '{data['code']}'."},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        with transaction.atomic():
+            criterion.is_locked = data['locked']
+            criterion.save(update_fields=['is_locked'])
+            audit_entry, short_hash = _write_audit(
+                {'criterion': criterion.code, 'locked': criterion.is_locked},
+                'WRITE · ABET SSR',
+            )
+
+        metrics = compute_dashboard_metrics()
+        return Response(
+            {
+                'code': criterion.code,
+                'locked': criterion.is_locked,
+                'abet': metrics['abet'],
+                'kpis': metrics['kpis'],
+                **_audit_payload(audit_entry, short_hash),
+            }
+        )
+
+
+class ABETPrintSealAPIView(APIView):
+    """Panel 07: Seals the printable SSR with an EXPORT audit row before the print view opens."""
+    authentication_classes = []
+    permission_classes = []
+
+    def post(self, request):
+        seed_initial_data()
+        abet_state = build_abet_state()
+        audit_entry, short_hash = _write_audit(
+            {'criteria': abet_state['criteria'], 'format': 'print-html'},
+            'EXPORT · Print',
+        )
+        return Response(_audit_payload(audit_entry, short_hash), status=status.HTTP_201_CREATED)
 
 
 class ABETReportExportAPIView(APIView):
@@ -607,6 +735,12 @@ class MiddlewareConfigAPIView(APIView):
                 status=status.HTTP_403_FORBIDDEN,
             )
 
+        previous_clearance = config.active_clearance_level
+        previous_alerts = {
+            f: getattr(config, f)
+            for f in ('alert_high_latency', 'alert_sync_failure', 'alert_weekly_digest')
+        }
+
         serializer = MiddlewareConfigSerializer(config, data=request.data, partial=True)
         serializer.is_valid(raise_exception=True)
         serializer.save()
@@ -615,4 +749,29 @@ class MiddlewareConfigAPIView(APIView):
             clearance_level=config.active_clearance_level
         )
 
-        return Response(serializer.data)
+        # Log only genuine state changes into the RA 10173 audit ledger
+        audit = {}
+        if config.active_clearance_level != previous_clearance:
+            entry, short_hash = _write_audit(
+                {
+                    'event': 'rbac_clearance_change',
+                    'from': previous_clearance,
+                    'to': config.active_clearance_level,
+                },
+                'AUTH · RBAC',
+            )
+            audit = _audit_payload(entry, short_hash)
+        else:
+            changed_alerts = {
+                f: getattr(config, f)
+                for f, old in previous_alerts.items()
+                if getattr(config, f) != old
+            }
+            if changed_alerts:
+                entry, short_hash = _write_audit(
+                    {'event': 'alert_toggle', 'changed': changed_alerts},
+                    'WRITE · Alert',
+                )
+                audit = _audit_payload(entry, short_hash)
+
+        return Response({**serializer.data, **audit})

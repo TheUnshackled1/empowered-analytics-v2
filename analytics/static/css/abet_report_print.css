@@ -1,0 +1,145 @@
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  color: #111827;
+  background: #ffffff;
+  padding: 40px;
+  max-width: 920px;
+  margin: 0 auto;
+  line-height: 1.45;
+}
+
+.toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.btn-back {
+  color: #4b5563;
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.btn-back:hover {
+  color: #111827;
+}
+
+.btn-print {
+  background: #f59e0b;
+  border: none;
+  padding: 9px 18px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.btn-print:hover {
+  filter: brightness(1.06);
+}
+
+.report-header {
+  border-bottom: 3px solid #f59e0b;
+  padding-bottom: 16px;
+  margin-bottom: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+h1 {
+  font-size: 19px;
+  margin: 0 0 4px;
+}
+
+h3 {
+  font-size: 14px;
+  margin: 22px 0 8px;
+}
+
+.sub {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.header-right {
+  text-align: right;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.unsealed {
+  color: #b45309;
+  font-weight: 700;
+}
+
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.kpi {
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 12px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.kpi strong {
+  font-size: 22px;
+  display: block;
+  color: #047857;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 10px;
+  font-size: 13px;
+}
+
+th,
+td {
+  border: 1px solid #d1d5db;
+  padding: 8px 10px;
+  text-align: left;
+}
+
+th {
+  background: #f3f4f6;
+}
+
+.center {
+  text-align: center;
+}
+
+.legend {
+  font-size: 11px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.report-footer {
+  font-size: 11px;
+  color: #6b7280;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 12px;
+  margin-top: 30px;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    padding: 0;
+  }
+}
+

@@ -1,0 +1,94 @@
+{% load static %}<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ABET Self-Study Report (SSR) | T.I.P. EmpowerED v2.0</title>
+  <link rel="stylesheet" href="{% static 'css/abet_report_print.css' %}">
+</head>
+<body>
+  <div class="no-print toolbar">
+    <a href="{% url 'panel7-abet' %}" class="btn-back">← Back to Panel 07</a>
+    <button type="button" class="btn-print" onclick="window.print()">Print / Save as PDF</button>
+  </div>
+
+  <header class="report-header">
+    <div>
+      <h1>TECHNOLOGICAL INSTITUTE OF THE PHILIPPINES (T.I.P.)</h1>
+      <div class="sub">EmpowerED Analytics Module v2.0 — Automated ABET &amp; CHED OBE Self-Study Report (SSR)</div>
+      <div class="sub">Generated: {{ generated_at|date:"Y-m-d H:i:s" }} (Asia/Manila)</div>
+    </div>
+    <div class="header-right">
+      <strong>SSR Readiness: {{ abet.ssr_pct }}%</strong><br>
+      {% if is_sealed %}
+      RA 10173 DPA Audit Seal: <code>{{ seal_hash }}</code>
+      {% else %}
+      <span class="unsealed">UNSEALED PREVIEW — generate from Panel 07</span>
+      {% endif %}
+    </div>
+  </header>
+
+  <section class="kpi-row">
+    <div class="kpi"><strong>{{ kpis.abet_accreditation }}%</strong>ABET Accreditation</div>
+    <div class="kpi"><strong>{{ kpis.ched_obe_status }}%</strong>CHED OBE Status</div>
+    <div class="kpi"><strong>{{ kpis.matrix_coverage }}%</strong>Matrix Coverage</div>
+    <div class="kpi"><strong>{{ kpis.deficit }}%</strong>Attainment Deficit</div>
+  </section>
+
+  <h3>1. Curriculum Outcomes-Based Course Mapping Matrix (SO1 – SO4)</h3>
+  <table>
+    <thead>
+      <tr><th>Course Code</th><th>Course Title</th><th>SO1</th><th>SO2</th><th>SO3</th><th>SO4</th></tr>
+    </thead>
+    <tbody>
+      {% for row in matrix_rows %}
+      <tr>
+        <td><strong>{{ row.course_code }}</strong></td>
+        <td>{{ row.course_title }}</td>
+        {% for cell in row.cells %}
+        <td class="center">{% if cell.proficiency %}{{ cell.proficiency }}{% else %}—{% endif %}</td>
+        {% endfor %}
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <p class="legend">I = Introductory · E = Enabling · R = Reinforcing · — = Not mapped</p>
+
+  <h3>2. ABET General Criteria Verification Checklist</h3>
+  <table>
+    <thead>
+      <tr><th>Criterion</th><th>Description</th><th>Verification Status</th></tr>
+    </thead>
+    <tbody>
+      {% for crit in abet.criteria %}
+      <tr>
+        <td><strong>{{ crit.code }}</strong></td>
+        <td>{{ crit.title }}</td>
+        <td>{% if crit.locked %}✓ Locked &amp; Verified{% else %}Pending Final Audit{% endif %}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3>3. Aggregated Student Competency Attainment (Target ≥ 80%)</h3>
+  <table>
+    <thead>
+      <tr><th>Competency</th><th>Attainment</th><th>Remark</th></tr>
+    </thead>
+    <tbody>
+      <tr><td>Knowledge</td><td class="center">{{ comp.knowledge }}%</td><td>{% if comp.knowledge >= 80 %}TARGET MET{% else %}CONTINUOUS IMPROVEMENT{% endif %}</td></tr>
+      <tr><td>Skills</td><td class="center">{{ comp.skills }}%</td><td>{% if comp.skills >= 80 %}TARGET MET{% else %}CONTINUOUS IMPROVEMENT{% endif %}</td></tr>
+      <tr><td>Values</td><td class="center">{{ comp.values }}%</td><td>{% if comp.values >= 80 %}TARGET MET{% else %}CONTINUOUS IMPROVEMENT{% endif %}</td></tr>
+      <tr><td>Capstone Readiness</td><td class="center">{{ comp.capstone }}%</td><td>{% if comp.capstone >= 80 %}TARGET MET{% else %}CONTINUOUS IMPROVEMENT{% endif %}</td></tr>
+      <tr><td>Internship Hours</td><td class="center">{{ comp.internship }}%</td><td>{% if comp.internship >= 80 %}TARGET MET{% else %}CONTINUOUS IMPROVEMENT{% endif %}</td></tr>
+    </tbody>
+  </table>
+
+  <footer class="report-footer">
+    Generated automatically via EmpowerED Analytics Module v2.0 REST API Middleware. All student-level Canvas LMS
+    LTI 1.3 rubric submissions were anonymized using SHA-256 tokenization prior to storage in compliance with
+    Republic Act No. 10173 (Data Privacy Act of 2012).
+  </footer>
+</body>
+</html>
+

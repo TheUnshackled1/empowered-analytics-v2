@@ -531,6 +531,18 @@ body {
   border: 1px solid var(--emerald);
 }
 
+/* Unmapped matrix cell (click to start mapping) */
+.tag-none {
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px dashed #334155;
+}
+
+.tag-none:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
 /* Non-blocking Toast Banner */
 #toast-container {
   position: fixed;

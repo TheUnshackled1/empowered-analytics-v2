@@ -14,6 +14,7 @@ urlpatterns = [
     path('audit-logs/', views.panel6_audit_view, name='panel6-audit'),
     path('abet-export/', views.panel7_abet_view, name='panel7-abet'),
     path('api-config/', views.panel8_config_view, name='panel8-config'),
+    path('abet-report/print/', views.abet_report_print_view, name='abet-report-print'),
 
     # REST API Middleware Endpoints
     path('api/v2/hooks/canvas-sync/', views.CanvasSyncWebhookAPIView.as_view(), name='canvas-sync-webhook'),
@@ -22,6 +23,8 @@ urlpatterns = [
     path('api/v2/auth/session-login/', views.EmpowerEdSessionLoginAPIView.as_view(), name='session-login'),
     path('api/v2/matrix/mapping/', views.CourseOutcomeMappingAPIView.as_view(), name='course-matrix-mapping'),
     path('api/v2/reports/abet-ssr/', views.ABETReportExportAPIView.as_view(), name='abet-ssr-export'),
+    path('api/v2/reports/abet-print-seal/', views.ABETPrintSealAPIView.as_view(), name='abet-print-seal'),
+    path('api/v2/abet/criteria/', views.ABETCriterionToggleAPIView.as_view(), name='abet-criteria'),
     path('api/v2/config/rotate-key/', views.RotateAPIKeyAPIView.as_view(), name='rotate-api-key'),
     path('api/v2/config/settings/', views.MiddlewareConfigAPIView.as_view(), name='middleware-config-settings'),
 ]

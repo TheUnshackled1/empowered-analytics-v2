@@ -1,6 +1,7 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from .models import (
+    ABETCriterion,
     Course,
     CourseOutcomeMapping,
     DPAAuditLog,
@@ -9,6 +10,12 @@ from .models import (
     StudentCompetencyRecord,
     SyncTelemetryLog,
 )
+
+
+@admin.register(ABETCriterion)
+class ABETCriterionAdmin(admin.ModelAdmin):
+    list_display = ('code', 'title', 'is_locked', 'sort_order')
+    list_editable = ('is_locked',)
 
 
 @admin.register(InstitutionalUser)
