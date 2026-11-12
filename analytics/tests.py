@@ -38,6 +38,10 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         self.assertEqual(login_res.context['active_tab'], 'p1')
         login_html = login_res.content.decode('utf-8')
         self.assertIn('Secure OAuth Login Screen', login_html)
+        self.assertIn('login-panel-head', login_html)
+        self.assertIn('id="sso-password-toggle"', login_html)
+        self.assertNotIn('<span class="badge-num">01</span>', login_html)
+        self.assertNotIn('2FA · OAuth 2.0 Protection Active', login_html)
         self.assertNotIn('class="module-nav"', login_html)
         self.assertNotIn('Analytics Dashboard', login_html)
 

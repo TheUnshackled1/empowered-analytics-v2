@@ -1,3 +1,24 @@
+function togglePasswordVisibility() {
+  const passInput = document.getElementById('sso-password-input');
+  const toggleBtn = document.getElementById('sso-password-toggle');
+  const eyeOpen = document.getElementById('eye-icon-open');
+  const eyeClosed = document.getElementById('eye-icon-closed');
+  if (!passInput) return;
+
+  const isMasked = passInput.type === 'password';
+  passInput.type = isMasked ? 'text' : 'password';
+
+  if (eyeOpen && eyeClosed) {
+    eyeOpen.classList.toggle('is-hidden', isMasked);
+    eyeClosed.classList.toggle('is-hidden', !isMasked);
+  }
+  if (toggleBtn) {
+    const nextLabel = isMasked ? 'Hide password' : 'Show password';
+    toggleBtn.setAttribute('aria-label', nextLabel);
+    toggleBtn.setAttribute('title', nextLabel);
+  }
+}
+
 async function handleInstitutionalLogin(btn) {
   const emailInput = document.getElementById('sso-email-input');
   const passInput = document.getElementById('sso-password-input');
