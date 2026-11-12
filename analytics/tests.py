@@ -63,6 +63,8 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
                 self.assertIn('app-body', html)
                 self.assertIn('module-nav', html)
                 self.assertIn('nav-icon', html)
+                self.assertIn('page-transition-loader', html)
+                self.assertIn('page-progress-bar', html)
                 self.assertNotIn('class="nav-num"', html)
                 self.assertNotIn('nav-section-lbl', html)
                 self.assertNotIn('8-Panel Master Board', html)

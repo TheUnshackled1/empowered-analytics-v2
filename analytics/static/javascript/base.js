@@ -13,6 +13,84 @@ function showToast(message, variant = 'ok') {
   }, 3600);
 }
 
+function showPageLoader(subtitleText = 'Synchronizing module state...') {
+  const overlay = document.getElementById('page-transition-loader');
+  const progress = document.getElementById('page-progress-bar');
+  const sub = document.getElementById('loader-subtext');
+
+  if (sub && subtitleText) {
+    sub.textContent = subtitleText;
+  }
+  if (progress) {
+    progress.classList.remove('complete');
+    progress.classList.add('active');
+  }
+  if (overlay) {
+    overlay.classList.add('active');
+  }
+}
+
+function hidePageLoader() {
+  const overlay = document.getElementById('page-transition-loader');
+  const progress = document.getElementById('page-progress-bar');
+
+  if (progress && progress.classList.contains('active')) {
+    progress.classList.add('complete');
+    setTimeout(() => {
+      progress.classList.remove('active', 'complete');
+    }, 240);
+  }
+  if (overlay) {
+    overlay.classList.remove('active');
+  }
+}
+
+function navigateWithTransition(targetUrl, labelText) {
+  if (!targetUrl) return;
+  showPageLoader(labelText || 'Loading module...');
+  setTimeout(() => {
+    window.location.href = targetUrl;
+  }, 240);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  hidePageLoader();
+
+  const navLinks = document.querySelectorAll('.module-nav .nav-item, #logout-btn, .topbar .brand');
+  navLinks.forEach((link) => {
+    link.addEventListener('click', (e) => {
+      if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+        return;
+      }
+      const href = link.getAttribute('href');
+      if (!href || href.startsWith('#') || href.startsWith('javascript:')) {
+        return;
+      }
+      // Avoid redundant transition if already on the exact same pathname
+      const destUrl = new URL(href, window.location.origin);
+      if (destUrl.pathname === window.location.pathname && destUrl.search === window.location.search) {
+        return;
+      }
+
+      e.preventDefault();
+      let label = 'Synchronizing module state...';
+      if (link.id === 'logout-btn') {
+        label = 'Signing out of EmpowerED session...';
+      } else {
+        const navLabel = link.querySelector('.nav-label');
+        if (navLabel && navLabel.textContent.trim()) {
+          label = `Loading ${navLabel.textContent.trim()}...`;
+        }
+      }
+      navigateWithTransition(href, label);
+    });
+  });
+});
+
+window.addEventListener('pageshow', () => {
+  hidePageLoader();
+});
+
 async function triggerGlobalSync() {
   const btn = document.getElementById('sync-btn');
   const courseCode = GLOBAL_SYNC_COURSES[globalSyncIdx % GLOBAL_SYNC_COURSES.length];
@@ -58,4 +136,3 @@ async function triggerGlobalSync() {
   if (btn) btn.textContent = '● Live Sync Complete';
   showToast(`Simulated Canvas sync (${courseCode})`);
 }
-
