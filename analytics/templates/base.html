@@ -55,8 +55,8 @@
     <a href="{% if request.session.empowered_authenticated and active_tab != 'p1' %}{% url 'panel2-dashboard' %}{% else %}{% url 'panel1-login' %}{% endif %}" class="brand">
       <div class="tip-seal">T.I.P.</div>
       <div>
-        <div class="brand-title">EmpowerED <span>ANALYTICS MODULE v2.0</span></div>
-        <div class="brand-sub">Technological Institute of the Philippines | Web System Interface Design</div>
+        <div class="brand-title">EmpowerED <span>API</span></div>
+        <div class="brand-sub">Technological Institute of the Philippines</div>
       </div>
     </a>
     {% if request.session.empowered_authenticated and active_tab != 'p1' %}

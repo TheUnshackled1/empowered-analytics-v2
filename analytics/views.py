@@ -35,6 +35,7 @@ from .serializers import (
     MiddlewareConfigSerializer,
 )
 from .services import (
+    DEFAULT_SSO_PASSWORD,
     build_abet_ssr_pdf,
     build_abet_state,
     compute_dashboard_metrics,
@@ -97,6 +98,7 @@ def seed_initial_data():
         or not DPAAuditLog.objects.exists()
         or not ABETCriterion.objects.exists()
         or dean is None
+        or not dean.password
         or not dean.has_usable_password()
     ):
         ensure_seed_data()
@@ -434,7 +436,7 @@ class InstitutionalSSOAPIView(APIView):
         config = MiddlewareConfig.load()
 
         with transaction.atomic():
-            user, _ = InstitutionalUser.objects.get_or_create(
+            user, created_user = InstitutionalUser.objects.get_or_create(
                 username=email,
                 defaults={
                     'email': email,
@@ -444,7 +446,11 @@ class InstitutionalSSOAPIView(APIView):
                 },
             )
             user.oauth_2fa_verified = True
-            user.save(update_fields=['oauth_2fa_verified'])
+            if created_user or not user.password or not user.has_usable_password():
+                user.set_password(DEFAULT_SSO_PASSWORD)
+                user.save(update_fields=['oauth_2fa_verified', 'password'])
+            else:
+                user.save(update_fields=['oauth_2fa_verified'])
 
             oauth_token = _issue_oauth_token()
             token_digest = hashlib.sha256(oauth_token.encode('utf-8')).hexdigest()

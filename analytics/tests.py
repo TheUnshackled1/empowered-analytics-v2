@@ -9,6 +9,7 @@ from .models import (
     Course,
     CourseOutcomeMapping,
     DPAAuditLog,
+    InstitutionalUser,
     MiddlewareConfig,
     StudentCompetencyRecord,
     SyncTelemetryLog,
@@ -38,7 +39,12 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         self.assertEqual(login_res.status_code, 200)
         self.assertEqual(login_res.context['active_tab'], 'p1')
         login_html = login_res.content.decode('utf-8')
-        self.assertIn('Secure OAuth Login Screen', login_html)
+        self.assertIn('Login Screen', login_html)
+        self.assertNotIn('Secure OAuth Login Screen', login_html)
+        self.assertNotIn('INSTITUTIONAL SINGLE SIGN-ON', login_html)
+        self.assertIn('EmpowerED <span>API</span>', login_html)
+        self.assertIn('Technological Institute of the Philippines', login_html)
+        self.assertNotIn('Web System Interface Design', login_html)
         self.assertIn('login-panel-head', login_html)
         self.assertIn('login-input-lbl', login_html)
         self.assertIn('id="sso-password-toggle"', login_html)
@@ -303,6 +309,8 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
 
     def test_session_login_and_protected_access(self):
         """After POST /api/v2/auth/session-login/ the session allows access to protected panels."""
+        # Simulate a legacy dean.cit@tip.edu.ph record with an empty password string
+        InstitutionalUser.objects.filter(email='dean.cit@tip.edu.ph').update(password='')
         login_res = self._login()
         self.assertEqual(login_res.status_code, 200)
         self.assertTrue(login_res.json()['verified'])

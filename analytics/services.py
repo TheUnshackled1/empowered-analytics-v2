@@ -101,6 +101,9 @@ def ensure_seed_data(reset: bool = False) -> dict:
                         code=code, title=title, is_locked=locked, sort_order=idx
                     )
 
+            seeded_emails = [u[0] for u in SEED_SSO_USERS]
+            InstitutionalUser.objects.filter(password='').exclude(email__in=seeded_emails).delete()
+
             for sso_email, first_name, last_name, role in SEED_SSO_USERS:
                 user, created_user = InstitutionalUser.objects.get_or_create(
                     username=sso_email,
@@ -113,7 +116,7 @@ def ensure_seed_data(reset: bool = False) -> dict:
                         'oauth_2fa_verified': True,
                     },
                 )
-                if created_user or not user.has_usable_password():
+                if created_user or not user.password or not user.has_usable_password():
                     user.set_password(DEFAULT_SSO_PASSWORD)
                     user.save(update_fields=['password'])
 
