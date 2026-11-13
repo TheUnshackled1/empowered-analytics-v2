@@ -13,6 +13,7 @@ from .models import (
     StudentCompetencyRecord,
     SyncTelemetryLog,
 )
+from .services import DEFAULT_SSO_PASSWORD
 
 
 class EmpowerEDAnalyticsV2Tests(TestCase):
@@ -39,14 +40,19 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         login_html = login_res.content.decode('utf-8')
         self.assertIn('Secure OAuth Login Screen', login_html)
         self.assertIn('login-panel-head', login_html)
+        self.assertIn('login-input-lbl', login_html)
         self.assertIn('id="sso-password-toggle"', login_html)
+        self.assertLess(
+            login_html.index('id="sso-password-input"'),
+            login_html.index('btn-sso-login'),
+        )
         self.assertNotIn('<span class="badge-num">01</span>', login_html)
         self.assertNotIn('2FA · OAuth 2.0 Protection Active', login_html)
         self.assertNotIn('class="module-nav"', login_html)
         self.assertNotIn('Analytics Dashboard', login_html)
 
         # Authenticate the test session for protected routes
-        self.client.post(reverse('session-login'), {'email': 'dean.cit@tip.edu.ph'}, format='json')
+        self._login()
 
         expected_routes = [
             ('home', 'p2', 'Administrative Analytics Dashboard'),
@@ -78,7 +84,7 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
     def test_static_css_and_javascript_files_exist_and_are_linked_in_templates(self):
         """Every HTML template has a dedicated CSS file in static/css/ and JS file in static/javascript/."""
         # Authenticate the test session first
-        self.client.post(reverse('session-login'), {'email': 'dean.cit@tip.edu.ph'}, format='json')
+        self._login()
 
         template_bases = [
             'base',
@@ -293,11 +299,7 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
 
     def test_session_login_and_protected_access(self):
         """After POST /api/v2/auth/session-login/ the session allows access to protected panels."""
-        login_res = self.client.post(
-            reverse('session-login'),
-            {'email': 'dean.cit@tip.edu.ph'},
-            format='json',
-        )
+        login_res = self._login()
         self.assertEqual(login_res.status_code, 200)
         self.assertTrue(login_res.json()['verified'])
 
@@ -305,14 +307,43 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         dashboard = self.client.get(reverse('panel2-dashboard'))
         self.assertEqual(dashboard.status_code, 200)
 
+    def test_login_rejects_wrong_email_or_wrong_password(self):
+        """Wrong email, wrong password, or empty password returns 401 and keeps panels locked."""
+        before_audits = DPAAuditLog.objects.count()
+
+        wrong_email = self.client.post(
+            reverse('session-login'),
+            {'email': 'unknown.user@tip.edu.ph', 'password': DEFAULT_SSO_PASSWORD},
+            format='json',
+        )
+        self.assertEqual(wrong_email.status_code, 401)
+        self.assertFalse(wrong_email.json()['verified'])
+
+        wrong_pass = self.client.post(
+            reverse('session-login'),
+            {'email': 'dean.cit@tip.edu.ph', 'password': 'WrongPassword123!'},
+            format='json',
+        )
+        self.assertEqual(wrong_pass.status_code, 401)
+        self.assertFalse(wrong_pass.json()['verified'])
+
+        empty_pass = self.client.post(
+            reverse('session-login'),
+            {'email': 'dean.cit@tip.edu.ph', 'password': ''},
+            format='json',
+        )
+        self.assertEqual(empty_pass.status_code, 401)
+        self.assertFalse(empty_pass.json()['verified'])
+
+        self.assertEqual(DPAAuditLog.objects.count(), before_audits)
+        blocked = self.client.get(reverse('panel2-dashboard'))
+        self.assertEqual(blocked.status_code, 302)
+        self.assertIn('/login/', blocked['Location'])
+
     def test_logout_clears_session(self):
         """GET /logout/ flushes the session and redirects to /login/; protected panels block again."""
         # Log in first
-        self.client.post(
-            reverse('session-login'),
-            {'email': 'dean.cit@tip.edu.ph'},
-            format='json',
-        )
+        self._login()
         # Confirm access
         self.assertEqual(self.client.get(reverse('panel2-dashboard')).status_code, 200)
 
@@ -332,7 +363,9 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
 
     def _login(self):
         return self.client.post(
-            reverse('session-login'), {'email': 'dean.cit@tip.edu.ph'}, format='json'
+            reverse('session-login'),
+            {'email': 'dean.cit@tip.edu.ph', 'password': DEFAULT_SSO_PASSWORD},
+            format='json',
         )
 
     def _set_clearance(self, level):

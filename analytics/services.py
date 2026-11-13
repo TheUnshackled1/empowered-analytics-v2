@@ -70,6 +70,12 @@ SEED_AUDITS = [
     (dt_time(9, 44, 2), 'c15a89…4401b2', 'AUTH · OAuth'),
 ]
 
+DEFAULT_SSO_PASSWORD = 'TIP@EmpowerED2026'
+SEED_SSO_USERS = (
+    ('dean.cit@tip.edu.ph', 'EmpowerED', 'Dean', 'DEAN'),
+    ('student.id@tip.edu.ph', 'EmpowerED', 'Student', 'DEAN'),
+)
+
 
 def ensure_seed_data(reset: bool = False) -> dict:
     """
@@ -95,20 +101,21 @@ def ensure_seed_data(reset: bool = False) -> dict:
                         code=code, title=title, is_locked=locked, sort_order=idx
                     )
 
-            user, created_user = InstitutionalUser.objects.get_or_create(
-                username='student.id@tip.edu.ph',
-                defaults={
-                    'email': 'student.id@tip.edu.ph',
-                    'first_name': 'EmpowerED',
-                    'last_name': 'Dean',
-                    'role': 'DEAN',
-                    'clearance_level': 2,
-                    'oauth_2fa_verified': True,
-                },
-            )
-            if created_user:
-                user.set_unusable_password()
-                user.save(update_fields=['password'])
+            for sso_email, first_name, last_name, role in SEED_SSO_USERS:
+                user, created_user = InstitutionalUser.objects.get_or_create(
+                    username=sso_email,
+                    defaults={
+                        'email': sso_email,
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'role': role,
+                        'clearance_level': 2,
+                        'oauth_2fa_verified': True,
+                    },
+                )
+                if created_user or not user.has_usable_password():
+                    user.set_password(DEFAULT_SSO_PASSWORD)
+                    user.save(update_fields=['password'])
 
             courses_by_code = {}
             if Course.objects.count() == 0:

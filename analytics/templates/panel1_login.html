@@ -16,16 +16,12 @@
     <div class="login-brand-sub">INSTITUTIONAL SINGLE SIGN-ON</div>
   </div>
 
-  <button class="btn-gold btn-sso-login" data-redirect-url="{% url 'panel2-dashboard' %}" onclick="handleInstitutionalLogin(this)">
-    ⊞ Log in with T.I.P. Microsoft Account
-  </button>
-
-  <div>
-    <label class="input-lbl" for="sso-email-input">Institutional Username</label>
-    <input class="input-box" id="sso-email-input" type="email" value="{{ sso_email }}" required>
-    <label class="input-lbl" for="sso-password-input">Password</label>
+  <div class="login-fields-group">
+    <label class="input-lbl login-input-lbl" for="sso-email-input">Institutional Username</label>
+    <input class="input-box" id="sso-email-input" type="email" value="{{ sso_email }}" autocomplete="username" required>
+    <label class="input-lbl login-input-lbl" for="sso-password-input">Password</label>
     <div class="password-field-wrap">
-      <input class="input-box password-input" id="sso-password-input" type="password" value="TIP@EmpowerED2026" required>
+      <input class="input-box password-input" id="sso-password-input" type="password" value="TIP@EmpowerED2026" autocomplete="current-password" required>
       <button type="button" class="password-toggle-btn" id="sso-password-toggle" onclick="togglePasswordVisibility()" aria-label="Show password" title="Show password">
         <svg id="eye-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -38,6 +34,10 @@
       </button>
     </div>
   </div>
+
+  <button class="btn-gold btn-sso-login" id="btn-sso-submit" data-redirect-url="{% url 'panel2-dashboard' %}" onclick="handleInstitutionalLogin(this)">
+    ⊞ Log in with T.I.P. Microsoft Account
+  </button>
 </div>
 {% endblock %}
 

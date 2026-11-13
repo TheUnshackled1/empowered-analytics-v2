@@ -19,17 +19,35 @@ function togglePasswordVisibility() {
   }
 }
 
+function clearLoginInputErrors() {
+  const emailInput = document.getElementById('sso-email-input');
+  const passInput = document.getElementById('sso-password-input');
+  if (emailInput) emailInput.classList.remove('input-error');
+  if (passInput) passInput.classList.remove('input-error');
+}
+
+function markLoginInputErrors() {
+  const emailInput = document.getElementById('sso-email-input');
+  const passInput = document.getElementById('sso-password-input');
+  if (emailInput) emailInput.classList.add('input-error');
+  if (passInput) passInput.classList.add('input-error');
+}
+
 async function handleInstitutionalLogin(btn) {
   const emailInput = document.getElementById('sso-email-input');
   const passInput = document.getElementById('sso-password-input');
   const email = (emailInput && emailInput.value.trim()) || '';
   const password = (passInput && passInput.value) || '';
 
+  clearLoginInputErrors();
+
   if (!email || !email.includes('@')) {
+    markLoginInputErrors();
     showToast('Please enter a valid T.I.P. institutional email address.', 'warn');
     return;
   }
   if (!password) {
+    markLoginInputErrors();
     showToast('Please enter your institutional password.', 'warn');
     return;
   }
@@ -37,7 +55,8 @@ async function handleInstitutionalLogin(btn) {
   // Honor the ?next= param so the guard sends users back where they came from
   const params = new URLSearchParams(window.location.search);
   const nextParam = params.get('next');
-  const defaultUrl = (btn && btn.dataset && btn.dataset.redirectUrl) || '/dashboard/';
+  const submitBtn = btn || document.getElementById('btn-sso-submit');
+  const defaultUrl = (submitBtn && submitBtn.dataset && submitBtn.dataset.redirectUrl) || '/dashboard/';
   const redirectUrl = nextParam && nextParam !== '/login/' ? nextParam : defaultUrl;
 
   if (typeof showPageLoader === 'function') {
@@ -48,10 +67,10 @@ async function handleInstitutionalLogin(btn) {
     const res = await fetch('/api/v2/auth/session-login/', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
+      body: JSON.stringify({ email, password }),
     });
-    if (res.ok) {
-      const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (res.ok && data.verified) {
       showToast(`Verified ${data.email} · OAuth 2.0 session established`);
       setTimeout(() => {
         window.location.href = redirectUrl;
@@ -59,9 +78,25 @@ async function handleInstitutionalLogin(btn) {
       return;
     }
     if (typeof hidePageLoader === 'function') hidePageLoader();
-    showToast('Authentication failed. Please verify your credentials.', 'error');
+    markLoginInputErrors();
+    showToast(data.detail || 'Invalid institutional username or password. Access denied.', 'error');
   } catch (_) {
     if (typeof hidePageLoader === 'function') hidePageLoader();
     showToast('Unable to reach authentication server.', 'error');
   }
 }
+
+document.addEventListener('DOMContentLoaded', () => {
+  const emailInput = document.getElementById('sso-email-input');
+  const passInput = document.getElementById('sso-password-input');
+  [emailInput, passInput].forEach((input) => {
+    if (!input) return;
+    input.addEventListener('input', clearLoginInputErrors);
+    input.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        handleInstitutionalLogin(document.getElementById('btn-sso-submit'));
+      }
+    });
+  });
+});

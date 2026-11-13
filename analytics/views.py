@@ -91,10 +91,13 @@ def _mask_token(token) -> str:
 
 def seed_initial_data():
     """Seeds initial T.I.P. CPE courses, competencies, telemetry, and DPA audit logs if empty."""
+    dean = InstitutionalUser.objects.filter(email__iexact='dean.cit@tip.edu.ph').first()
     if (
         not Course.objects.exists()
         or not DPAAuditLog.objects.exists()
         or not ABETCriterion.objects.exists()
+        or dean is None
+        or not dean.has_usable_password()
     ):
         ensure_seed_data()
 
@@ -468,48 +471,58 @@ class InstitutionalSSOAPIView(APIView):
 
 class EmpowerEdSessionLoginAPIView(APIView):
     """
-    Panel 01: Sets the ``empowered_authenticated`` Django session flag after
-    institutional SSO verification. Called by panel1_login.js before the
-    browser is redirected to the dashboard.
+    Panel 01: Validates institutional email + password credentials against
+    InstitutionalUser, then sets the ``empowered_authenticated`` Django session
+    flag and records an AUTH · OAuth audit entry.
     """
     authentication_classes = []
     permission_classes = []
 
     def post(self, request):
-        email = request.data.get('email', 'dean.cit@tip.edu.ph')
+        seed_initial_data()
+        email = (request.data.get('email') or '').strip()
+        password = request.data.get('password') or ''
+
+        user = (
+            InstitutionalUser.objects.filter(email__iexact=email, is_active=True).first()
+            if email
+            else None
+        )
+        if user is None or not password or not user.check_password(password):
+            request.session.pop('empowered_authenticated', None)
+            request.session.pop('empowered_user_email', None)
+            request.session.pop('empowered_oauth_token', None)
+            return Response(
+                {
+                    'verified': False,
+                    'detail': 'Invalid institutional username or password. Access denied.',
+                },
+                status=status.HTTP_401_UNAUTHORIZED,
+            )
+
         config = MiddlewareConfig.load()
 
         # Fresh OAuth 2.0 bearer token for this login; only its SHA-256 digest enters the ledger.
         oauth_token = _issue_oauth_token()
         token_digest = hashlib.sha256(oauth_token.encode('utf-8')).hexdigest()
         audit_entry, short_hash = _write_audit(
-            {'email': email, 'provider': 'tip-microsoft-sso', 'token_sha256': token_digest},
+            {'email': user.email, 'provider': 'tip-microsoft-sso', 'token_sha256': token_digest},
             'AUTH · OAuth',
         )
 
-        # Establish or refresh the institutional user record
         with transaction.atomic():
-            user, _ = InstitutionalUser.objects.get_or_create(
-                username=email,
-                defaults={
-                    'email': email,
-                    'role': 'DEAN',
-                    'clearance_level': config.active_clearance_level,
-                    'oauth_2fa_verified': True,
-                },
-            )
             user.oauth_2fa_verified = True
             user.save(update_fields=['oauth_2fa_verified'])
 
         # Mark the Django session as authenticated
         request.session['empowered_authenticated'] = True
-        request.session['empowered_user_email'] = email
+        request.session['empowered_user_email'] = user.email
         request.session['empowered_oauth_token'] = oauth_token
 
         return Response(
             {
                 'verified': True,
-                'email': email,
+                'email': user.email,
                 'clearance_level': config.active_clearance_level,
                 'oauth_token_masked': _mask_token(oauth_token),
                 **_audit_payload(audit_entry, short_hash),

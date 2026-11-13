@@ -31,9 +31,18 @@
   letter-spacing: 0.8px;
 }
 
+.login-fields-group {
+  margin-bottom: 18px;
+}
+
+.login-input-lbl {
+  text-align: center;
+}
+
 .btn-sso-login {
   width: 100%;
-  margin-bottom: 14px;
+  margin-top: 4px;
+  margin-bottom: 4px;
 }
 
 .password-field-wrap {
@@ -45,6 +54,11 @@
 .password-input {
   padding-right: 44px;
   margin-bottom: 0;
+}
+
+.input-box.input-error {
+  border-color: rgba(239, 68, 68, 0.85);
+  box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.18);
 }
 
 .password-toggle-btn {
