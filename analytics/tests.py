@@ -42,6 +42,8 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         self.assertIn('login-panel-head', login_html)
         self.assertIn('login-input-lbl', login_html)
         self.assertIn('id="sso-password-toggle"', login_html)
+        self.assertIn('id="system-alert-modal"', login_html)
+        self.assertIn('id="system-modal-card"', login_html)
         self.assertLess(
             login_html.index('id="sso-password-input"'),
             login_html.index('btn-sso-login'),
@@ -76,6 +78,8 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
                 self.assertIn('nav-icon', html)
                 self.assertIn('page-transition-loader', html)
                 self.assertIn('page-progress-bar', html)
+                self.assertIn('id="system-alert-modal"', html)
+                self.assertIn('id="system-modal-card"', html)
                 self.assertNotIn('class="nav-num"', html)
                 self.assertNotIn('nav-section-lbl', html)
                 self.assertNotIn('8-Panel Master Board', html)

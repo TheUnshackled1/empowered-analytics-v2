@@ -1,7 +1,97 @@
 const GLOBAL_SYNC_COURSES = ['CPE 515', 'CPE 616', 'CPE 412', 'CPE 512', 'CPE 311'];
 let globalSyncIdx = 0;
+let modalDismissTimer = null;
 
-function showToast(message, variant = 'ok') {
+const MODAL_ICONS = {
+  error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+  warn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+  ok: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+};
+
+const MODAL_DEFAULTS = {
+  error: {
+    title: 'Access Denied',
+    subtitle: 'T.I.P. EmpowerED Security & Policy Guard',
+    btnText: 'Dismiss',
+  },
+  warn: {
+    title: 'Clearance Warning',
+    subtitle: 'Role-Based Access Control (RBAC)',
+    btnText: 'Acknowledge',
+  },
+  ok: {
+    title: 'Action Completed',
+    subtitle: 'T.I.P. EmpowerED System Telemetry',
+    btnText: 'Dismiss',
+  },
+  info: {
+    title: 'System Notice',
+    subtitle: 'T.I.P. Institutional Framework',
+    btnText: 'Dismiss',
+  },
+};
+
+function showAlertModal(message, variant = 'ok', customTitle = null) {
+  const modal = document.getElementById('system-alert-modal');
+  const card = document.getElementById('system-modal-card');
+  const titleEl = document.getElementById('system-modal-title');
+  const subEl = document.getElementById('system-modal-subtitle');
+  const msgEl = document.getElementById('system-modal-message');
+  const iconEl = document.getElementById('system-modal-icon');
+  const btnEl = document.getElementById('system-modal-action-btn');
+
+  if (!modal || !card) {
+    fallbackToast(message, variant);
+    return;
+  }
+
+  if (modalDismissTimer) {
+    clearTimeout(modalDismissTimer);
+    modalDismissTimer = null;
+  }
+
+  const normalizedVariant = ['error', 'warn', 'ok', 'info'].includes(variant) ? variant : 'ok';
+  const defaults = MODAL_DEFAULTS[normalizedVariant];
+
+  card.className = `system-modal-card ${normalizedVariant}`;
+  if (titleEl) titleEl.textContent = customTitle || defaults.title;
+  if (subEl) subEl.textContent = defaults.subtitle;
+  if (msgEl) msgEl.textContent = message;
+  if (iconEl) iconEl.innerHTML = MODAL_ICONS[normalizedVariant] || MODAL_ICONS.info;
+  if (btnEl) btnEl.textContent = defaults.btnText;
+
+  modal.classList.remove('closing');
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+
+  if (btnEl) {
+    setTimeout(() => {
+      try {
+        btnEl.focus();
+      } catch (_) {}
+    }, 40);
+  }
+}
+
+function closeSystemModal() {
+  const modal = document.getElementById('system-alert-modal');
+  if (!modal || !modal.classList.contains('show')) return;
+
+  modal.classList.add('closing');
+  setTimeout(() => {
+    modal.classList.remove('show', 'closing');
+    modal.setAttribute('aria-hidden', 'true');
+  }, 200);
+}
+
+function handleModalBackdropClick(event) {
+  if (event.target && event.target.id === 'system-alert-modal') {
+    closeSystemModal();
+  }
+}
+
+function fallbackToast(message, variant = 'ok') {
   const container = document.getElementById('toast-container');
   if (!container) return;
   const div = document.createElement('div');
@@ -11,6 +101,10 @@ function showToast(message, variant = 'ok') {
   setTimeout(() => {
     if (div.parentNode) div.parentNode.removeChild(div);
   }, 3600);
+}
+
+function showToast(message, variant = 'ok') {
+  showAlertModal(message, variant);
 }
 
 function showPageLoader(subtitleText = 'Synchronizing module state...') {
@@ -55,6 +149,16 @@ function navigateWithTransition(targetUrl, labelText) {
 
 document.addEventListener('DOMContentLoaded', () => {
   hidePageLoader();
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const modal = document.getElementById('system-alert-modal');
+      if (modal && modal.classList.contains('show')) {
+        e.preventDefault();
+        closeSystemModal();
+      }
+    }
+  });
 
   const navLinks = document.querySelectorAll('.module-nav .nav-item, #logout-btn, .topbar .brand');
   navLinks.forEach((link) => {

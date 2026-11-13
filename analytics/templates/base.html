@@ -25,6 +25,32 @@
     </div>
   </div>
 
+  <!-- System Alert Modal Dialog -->
+  <div id="system-alert-modal" class="system-modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" onclick="handleModalBackdropClick(event)">
+    <div class="system-modal-card" id="system-modal-card" onclick="event.stopPropagation()">
+      <div class="system-modal-header">
+        <div class="system-modal-title-wrap">
+          <div class="system-modal-icon-badge" id="system-modal-icon" aria-hidden="true"></div>
+          <div>
+            <div class="system-modal-title" id="system-modal-title">System Notification</div>
+            <div class="system-modal-subtitle" id="system-modal-subtitle">T.I.P. EmpowerED System Guard</div>
+          </div>
+        </div>
+        <button type="button" class="system-modal-close-btn" id="system-modal-close" onclick="closeSystemModal()" aria-label="Close modal">
+          &times;
+        </button>
+      </div>
+      <div class="system-modal-body">
+        <p id="system-modal-message" class="system-modal-text"></p>
+      </div>
+      <div class="system-modal-footer">
+        <button type="button" class="btn-gold system-modal-btn" id="system-modal-action-btn" onclick="closeSystemModal()">
+          Dismiss
+        </button>
+      </div>
+    </div>
+  </div>
+
   <header class="topbar">
     <a href="{% if request.session.empowered_authenticated and active_tab != 'p1' %}{% url 'panel2-dashboard' %}{% else %}{% url 'panel1-login' %}{% endif %}" class="brand">
       <div class="tip-seal">T.I.P.</div>
