@@ -86,6 +86,7 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
                 self.assertIn('page-progress-bar', html)
                 self.assertIn('id="system-alert-modal"', html)
                 self.assertIn('id="system-modal-card"', html)
+                self.assertNotIn('class="badge-num"', html)
                 self.assertNotIn('class="nav-num"', html)
                 self.assertNotIn('nav-section-lbl', html)
                 self.assertNotIn('8-Panel Master Board', html)
