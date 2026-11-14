@@ -768,7 +768,6 @@ class MiddlewareConfigAPIView(APIView):
             clearance_level=config.active_clearance_level
         )
 
-        # Log only genuine state changes into the RA 10173 audit ledger
         audit = {}
         if config.active_clearance_level != previous_clearance:
             entry, short_hash = _write_audit(
