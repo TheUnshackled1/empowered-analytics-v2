@@ -62,7 +62,6 @@ class CanvasWebhookIngestSerializer(serializers.Serializer):
 class MatrixCellUpdateSerializer(serializers.Serializer):
     course_code = serializers.CharField(max_length=20)
     so_code = serializers.ChoiceField(choices=['SO1', 'SO2', 'SO3', 'SO4'])
-    # '-' clears the mapping (cell shows as an em dash in the matrix)
     proficiency = serializers.ChoiceField(choices=['I', 'E', 'R', '-'])
 
 
