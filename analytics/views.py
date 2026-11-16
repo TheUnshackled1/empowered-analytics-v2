@@ -5,6 +5,7 @@ import json
 import secrets
 import time
 
+from django.conf import settings
 from django.db import transaction
 from django.http import HttpResponse
 from django.shortcuts import redirect, render
@@ -48,13 +49,23 @@ from .services import (
 # ---------------------------------------------------------------------------
 
 def _empowered_login_required(view_func):
-    """Redirect unauthenticated visitors to /login/?next=<requested-path>."""
+    """Redirect unauthenticated or expired-session visitors to /login/?next=<requested-path>."""
     @wraps(view_func)
     def _wrapped(request, *args, **kwargs):
+        login_url = reverse('panel1-login')
+        next_url = request.get_full_path()
         if not request.session.get('empowered_authenticated'):
-            login_url = reverse('panel1-login')
-            next_url = request.get_full_path()
             return redirect(f'{login_url}?next={next_url}')
+
+        max_idle = int(getattr(settings, 'SESSION_COOKIE_AGE', 900))
+        now_ts = int(time.time())
+        last_activity = request.session.get('empowered_last_activity')
+        if last_activity is not None and (now_ts - int(last_activity)) > max_idle:
+            request.session.flush()
+            return redirect(f'{login_url}?next={next_url}')
+
+        request.session['empowered_last_activity'] = now_ts
+        request.session.set_expiry(max_idle)
         return view_func(request, *args, **kwargs)
     return _wrapped
 
@@ -459,9 +470,12 @@ class InstitutionalSSOAPIView(APIView):
                 'AUTH · OAuth',
             )
 
+        max_idle = int(getattr(settings, 'SESSION_COOKIE_AGE', 900))
         request.session['empowered_authenticated'] = True
         request.session['empowered_user_email'] = user.email
         request.session['empowered_oauth_token'] = oauth_token
+        request.session['empowered_last_activity'] = int(time.time())
+        request.session.set_expiry(max_idle)
 
         return Response(
             {
@@ -470,6 +484,7 @@ class InstitutionalSSOAPIView(APIView):
                 'role': user.role,
                 'clearance_level': config.active_clearance_level,
                 'oauth_token_masked': _mask_token(oauth_token),
+                'session_timeout_seconds': max_idle,
                 **_audit_payload(audit_entry, short_hash),
             }
         )
@@ -520,10 +535,13 @@ class EmpowerEdSessionLoginAPIView(APIView):
             user.oauth_2fa_verified = True
             user.save(update_fields=['oauth_2fa_verified'])
 
-        # Mark the Django session as authenticated
+        # Mark the Django session as authenticated with expiring session cookie
+        max_idle = int(getattr(settings, 'SESSION_COOKIE_AGE', 900))
         request.session['empowered_authenticated'] = True
         request.session['empowered_user_email'] = user.email
         request.session['empowered_oauth_token'] = oauth_token
+        request.session['empowered_last_activity'] = int(time.time())
+        request.session.set_expiry(max_idle)
 
         return Response(
             {
@@ -531,6 +549,7 @@ class EmpowerEdSessionLoginAPIView(APIView):
                 'email': user.email,
                 'clearance_level': config.active_clearance_level,
                 'oauth_token_masked': _mask_token(oauth_token),
+                'session_timeout_seconds': max_idle,
                 **_audit_payload(audit_entry, short_hash),
             }
         )

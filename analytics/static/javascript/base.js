@@ -147,8 +147,41 @@ function navigateWithTransition(targetUrl, labelText) {
   }, 240);
 }
 
+let sessionIdleTimer = null;
+
+function initSessionAutoLogout() {
+  if (!document.body || document.body.dataset.authenticated !== 'true') {
+    return;
+  }
+  const timeoutSec = parseInt(document.body.dataset.sessionTimeout || '900', 10);
+  const idleLimitMs = Math.max(10, Number.isFinite(timeoutSec) ? timeoutSec : 900) * 1000;
+  const logoutUrl = document.body.dataset.logoutUrl || '/logout/';
+
+  const resetIdleTimer = () => {
+    if (sessionIdleTimer) {
+      clearTimeout(sessionIdleTimer);
+    }
+    sessionIdleTimer = setTimeout(() => {
+      showAlertModal(
+        'Your institutional session has expired due to inactivity. Logging out automatically...',
+        'warn',
+        'Session Expired'
+      );
+      setTimeout(() => {
+        window.location.href = logoutUrl;
+      }, 1200);
+    }, idleLimitMs);
+  };
+
+  ['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach((evt) => {
+    window.addEventListener(evt, resetIdleTimer, { passive: true });
+  });
+  resetIdleTimer();
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   hidePageLoader();
+  initSessionAutoLogout();
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {

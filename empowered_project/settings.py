@@ -100,3 +100,12 @@ REST_FRAMEWORK = {
 
 # Custom Institutional User Model for EmpowerED RBAC & SSO
 AUTH_USER_MODEL = 'analytics.InstitutionalUser'
+
+# Session Cookie Expiration & Automatic Logout Configuration (15 minutes = 900s)
+SESSION_COOKIE_NAME = 'empowered_sessionid'
+SESSION_COOKIE_AGE = int(os.getenv('DJANGO_SESSION_COOKIE_AGE', '900'))
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+

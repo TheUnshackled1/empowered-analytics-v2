@@ -9,7 +9,7 @@
   {% block extra_css %}{% endblock %}
   {% block extra_head %}{% endblock %}
 </head>
-<body>
+<body data-authenticated="{% if request.session.empowered_authenticated and active_tab != 'p1' %}true{% else %}false{% endif %}" data-session-timeout="{{ request.session.get_expiry_age|default:900 }}" data-logout-url="{% url 'empowered-logout' %}">
 
   <!-- Top Shimmer Progress Bar & Glassmorphic Page Transition Loader -->
   <div id="page-progress-bar" class="page-progress-bar" aria-hidden="true"></div>
