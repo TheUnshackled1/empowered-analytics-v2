@@ -369,6 +369,40 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         self.assertEqual(blocked.status_code, 302)
         self.assertIn('/login/', blocked['Location'])
 
+    def test_session_cookie_expiration_and_auto_logout_on_inactivity(self):
+        """Session cookie has 15-minute expiry, browser-close expiry, and auto-logs out when idle."""
+        from django.conf import settings
+        import time
+
+        self.assertEqual(settings.SESSION_COOKIE_NAME, 'empowered_sessionid')
+        self.assertEqual(settings.SESSION_COOKIE_AGE, 900)
+        self.assertTrue(settings.SESSION_SAVE_EVERY_REQUEST)
+        self.assertTrue(settings.SESSION_EXPIRE_AT_BROWSER_CLOSE)
+        self.assertTrue(settings.SESSION_COOKIE_HTTPONLY)
+
+        login_res = self._login()
+        self.assertEqual(login_res.status_code, 200)
+        self.assertEqual(login_res.json()['session_timeout_seconds'], 900)
+        self.assertEqual(self.client.session.get_expiry_age(), 900)
+        self.assertIsNotNone(self.client.session.get('empowered_last_activity'))
+
+        dashboard = self.client.get(reverse('panel2-dashboard'))
+        self.assertEqual(dashboard.status_code, 200)
+        dash_html = dashboard.content.decode('utf-8')
+        self.assertIn('data-authenticated="true"', dash_html)
+        self.assertIn('data-session-timeout="900"', dash_html)
+        self.assertIn('data-logout-url="/logout/"', dash_html)
+
+        # Simulate session idle beyond SESSION_COOKIE_AGE (900 seconds)
+        session = self.client.session
+        session['empowered_last_activity'] = int(time.time()) - 905
+        session.save()
+
+        expired_res = self.client.get(reverse('panel2-dashboard'))
+        self.assertEqual(expired_res.status_code, 302)
+        self.assertIn('/login/?next=/dashboard/', expired_res['Location'])
+        self.assertFalse(bool(self.client.session.get('empowered_authenticated')))
+
     # ------------------------------------------------------------------
     # 80% working-software coverage: persistent ABET checklist, matrix
     # add/clear, complete audit coverage, OAuth token, printable SSR

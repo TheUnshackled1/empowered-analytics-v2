@@ -168,6 +168,7 @@ body {
     opacity: 0;
     transform: translateY(10px) scale(0.992);
   }
+
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
@@ -289,10 +290,10 @@ body {
   white-space: nowrap;
   overflow: hidden;
   transition: transform 0.22s cubic-bezier(0.2, 0.8, 0.2, 1),
-              background 0.22s ease,
-              border-color 0.22s ease,
-              color 0.22s ease,
-              box-shadow 0.22s ease;
+    background 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease,
+    box-shadow 0.22s ease;
 }
 
 .nav-item::before {
@@ -320,10 +321,10 @@ body {
   color: var(--text-sub);
   flex-shrink: 0;
   transition: transform 0.22s ease,
-              background 0.22s ease,
-              border-color 0.22s ease,
-              color 0.22s ease,
-              box-shadow 0.22s ease;
+    background 0.22s ease,
+    border-color 0.22s ease,
+    color 0.22s ease,
+    box-shadow 0.22s ease;
 }
 
 .nav-icon svg {
@@ -828,6 +829,7 @@ body {
     opacity: 0;
     transform: translateY(8px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);

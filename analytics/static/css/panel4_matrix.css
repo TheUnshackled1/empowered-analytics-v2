@@ -1,14 +1,19 @@
 .panel-sub-hint {
   font-size: 11px;
   color: var(--text-sub);
+  text-align: center;
 }
 
 .matrix-legend {
   display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 20px;
   font-size: 12px;
   color: var(--text-sub);
   margin-top: 18px;
+  text-align: center;
 }
 
 .ier-pill-static {

@@ -1,6 +1,7 @@
 .abet-seal-note {
   font-size: 11px;
   color: var(--text-sub);
+  text-align: center;
 }
 
 .abet-export-grid {
@@ -8,16 +9,23 @@
   grid-template-columns: 1.4fr 1fr;
   gap: 28px;
   align-items: center;
+  text-align: center;
 }
 
 .criteria-checklist {
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 12px;
   font-size: 13px;
+  text-align: center;
 }
 
 .criteria-checklist label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
   cursor: pointer;
 }
 
@@ -27,6 +35,10 @@
 }
 
 .ssr-gauge-box {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   background: var(--bg-input);
   padding: 28px;

@@ -1,6 +1,7 @@
 .benchmark-hint {
   font-size: 11px;
   color: var(--text-sub);
+  text-align: center;
 }
 
 .competency-split {
@@ -8,9 +9,13 @@
   grid-template-columns: 1fr 1.2fr;
   gap: 32px;
   align-items: center;
+  text-align: center;
 }
 
 .radar-box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
   text-align: center;
   background: var(--bg-input);
   padding: 24px;
@@ -22,13 +27,17 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+  text-align: center;
 }
 
 .progress-row-head {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
   font-size: 13px;
   margin-bottom: 6px;
+  text-align: center;
 }
 
 .progress-track-lg {

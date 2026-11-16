@@ -1,6 +1,7 @@
 .exec-live-badge {
   font-size: 11px;
   color: var(--emerald);
+  text-align: center;
 }
 
 .dashboard-split-grid {
@@ -8,11 +9,15 @@
   grid-template-columns: 1fr 1fr;
   gap: 24px;
   align-items: center;
+  justify-items: stretch;
+  text-align: center;
 }
 
 .donut-panel-box {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
+  align-items: center;
+  gap: 48px;
   background: var(--bg-input);
   padding: 24px;
   border-radius: 10px;
@@ -24,12 +29,14 @@
   font-size: 13px;
   font-weight: 700;
   margin-top: 8px;
+  text-align: center;
 }
 
 .kpi-cards-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  text-align: center;
 }
 
 .kpi-box-lg {
@@ -37,17 +44,24 @@
   border: 1px solid var(--border);
   padding: 20px;
   border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
 }
 
 .kpi-label-lg {
   font-size: 11px;
   color: var(--text-muted);
+  text-align: center;
 }
 
 .kpi-value-lg {
   font-size: 32px;
   font-weight: 800;
   margin: 6px 0;
+  text-align: center;
 }
 
 .kpi-value-emerald {
@@ -61,6 +75,7 @@
 .kpi-sub-lg {
   font-size: 11px;
   color: var(--text-sub);
+  text-align: center;
 }
 
 .cohort-banner {
@@ -69,15 +84,18 @@
   padding: 16px;
   border-radius: 10px;
   grid-column: span 2;
+  text-align: center;
 }
 
 .cohort-title {
   font-size: 11px;
   color: var(--text-sub);
   margin-bottom: 6px;
+  text-align: center;
 }
 
 .cohort-sub {
   font-size: 11px;
   color: var(--emerald);
+  text-align: center;
 }

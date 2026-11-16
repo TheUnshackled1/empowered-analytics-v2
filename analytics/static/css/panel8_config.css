@@ -1,16 +1,20 @@
 .config-card {
   max-width: 720px;
   margin: 0 auto;
+  text-align: center;
 }
 
 .secret-key-row {
   display: flex;
+  justify-content: center;
+  align-items: center;
   gap: 10px;
   margin-bottom: 14px;
 }
 
 .secret-key-input {
   cursor: pointer;
+  text-align: center;
 }
 
 .btn-rotate-key {
@@ -19,6 +23,7 @@
 
 .webhook-input {
   margin-bottom: 18px;
+  text-align: center;
 }
 
 .alerts-group-box {
@@ -31,11 +36,13 @@
 
 .toggle-row {
   display: flex;
-  justify-content: space-between;
+  justify-content: center;
   align-items: center;
+  gap: 16px;
   font-size: 12px;
   padding: 8px 0;
   border-bottom: 1px solid #1a253a;
+  text-align: center;
 }
 
 .toggle-row-last {

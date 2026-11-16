@@ -1,6 +1,7 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,159 +10,178 @@
   {% block extra_css %}{% endblock %}
   {% block extra_head %}{% endblock %}
 </head>
-<body data-authenticated="{% if request.session.empowered_authenticated and active_tab != 'p1' %}true{% else %}false{% endif %}" data-session-timeout="{{ request.session.get_expiry_age|default:900 }}" data-logout-url="{% url 'empowered-logout' %}">
 
-  <!-- Top Shimmer Progress Bar & Glassmorphic Page Transition Loader -->
-  <div id="page-progress-bar" class="page-progress-bar" aria-hidden="true"></div>
-  <div id="page-transition-loader" class="page-loader-overlay" aria-hidden="true">
-    <div class="loader-card">
-      <div class="loader-orbital">
-        <div class="orbital-ring orbital-outer"></div>
-        <div class="orbital-ring orbital-inner"></div>
-        <div class="orbital-core">T.I.P.</div>
-      </div>
-      <div class="loader-title">EmpowerED <span>v2.0</span></div>
-      <div id="loader-subtext" class="loader-sub">Synchronizing module state...</div>
-    </div>
-  </div>
 
-  <!-- System Alert Modal Dialog -->
-  <div id="system-alert-modal" class="system-modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true" onclick="handleModalBackdropClick(event)">
-    <div class="system-modal-card" id="system-modal-card" onclick="event.stopPropagation()">
-      <div class="system-modal-header">
-        <div class="system-modal-title-wrap">
-          <div class="system-modal-icon-badge" id="system-modal-icon" aria-hidden="true"></div>
-          <div>
-            <div class="system-modal-title" id="system-modal-title">System Notification</div>
-            <div class="system-modal-subtitle" id="system-modal-subtitle">T.I.P. EmpowerED System Guard</div>
-          </div>
+  <body
+    data-authenticated="{% if request.session.empowered_authenticated and active_tab != 'p1' %}true{% else %}false{% endif %}"
+    data-session-timeout="{{ request.session.get_expiry_age|default:900 }}"
+    data-logout-url="{% url 'empowered-logout' %}">
+
+    <!-- Top Shimmer Progress Bar & Glassmorphic Page Transition Loader -->
+    <div id="page-progress-bar" class="page-progress-bar" aria-hidden="true"></div>
+    <div id="page-transition-loader" class="page-loader-overlay" aria-hidden="true">
+      <div class="loader-card">
+        <div class="loader-orbital">
+          <div class="orbital-ring orbital-outer"></div>
+          <div class="orbital-ring orbital-inner"></div>
+          <div class="orbital-core">T.I.P.</div>
         </div>
-        <button type="button" class="system-modal-close-btn" id="system-modal-close" onclick="closeSystemModal()" aria-label="Close modal">
-          &times;
-        </button>
-      </div>
-      <div class="system-modal-body">
-        <p id="system-modal-message" class="system-modal-text"></p>
-      </div>
-      <div class="system-modal-footer">
-        <button type="button" class="btn-gold system-modal-btn" id="system-modal-action-btn" onclick="closeSystemModal()">
-          Dismiss
-        </button>
+        <div class="loader-title">EmpowerED <span>v2.0</span></div>
+        <div id="loader-subtext" class="loader-sub">Synchronizing module state...</div>
       </div>
     </div>
-  </div>
 
-  <header class="topbar">
-    <a href="{% if request.session.empowered_authenticated and active_tab != 'p1' %}{% url 'panel2-dashboard' %}{% else %}{% url 'panel1-login' %}{% endif %}" class="brand">
-      <div class="tip-seal">T.I.P.</div>
-      <div>
-        <div class="brand-title">EmpowerED <span>API</span></div>
-        <div class="brand-sub">Technological Institute of the Philippines</div>
+    <!-- System Alert Modal Dialog -->
+    <div id="system-alert-modal" class="system-modal-backdrop" aria-hidden="true" role="dialog" aria-modal="true"
+      onclick="handleModalBackdropClick(event)">
+      <div class="system-modal-card" id="system-modal-card" onclick="event.stopPropagation()">
+        <div class="system-modal-header">
+          <div class="system-modal-title-wrap">
+            <div class="system-modal-icon-badge" id="system-modal-icon" aria-hidden="true"></div>
+            <div>
+              <div class="system-modal-title" id="system-modal-title">System Notification</div>
+              <div class="system-modal-subtitle" id="system-modal-subtitle">T.I.P. EmpowerED System Guard</div>
+            </div>
+          </div>
+          <button type="button" class="system-modal-close-btn" id="system-modal-close" onclick="closeSystemModal()"
+            aria-label="Close modal">
+            &times;
+          </button>
+        </div>
+        <div class="system-modal-body">
+          <p id="system-modal-message" class="system-modal-text"></p>
+        </div>
+        <div class="system-modal-footer">
+          <button type="button" class="btn-gold system-modal-btn" id="system-modal-action-btn"
+            onclick="closeSystemModal()">
+            Dismiss
+          </button>
+        </div>
       </div>
-    </a>
-    {% if request.session.empowered_authenticated and active_tab != 'p1' %}
-    <div class="topbar-actions">
-      <button class="status-pill" id="sync-btn" onclick="triggerGlobalSync()">● Trigger Live Canvas API Sync</button>
-      <a href="{% url 'empowered-logout' %}" class="status-pill" id="logout-btn" style="color:var(--rose); border-color:var(--rose); text-decoration:none;">↩ Logout</a>
     </div>
-    {% endif %}
-  </header>
 
-  <div id="toast-container"></div>
-
-  <script src="{% static 'javascript/base.js' %}"></script>
-
-  <div class="app-body">
-    {% if request.session.empowered_authenticated and active_tab != 'p1' %}
-    <nav class="module-nav" aria-label="EmpowerED Module Navigation">
-      <a href="{% url 'panel2-dashboard' %}" class="nav-item {% if active_tab == 'p2' %}active{% endif %}">
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="9.5" cy="9.5" r="6" stroke-dasharray="28 10" />
-            <circle cx="9.5" cy="9.5" r="2.3" />
-            <path d="M15.5 19.5v-4M18.5 19.5v-7M21.5 19.5v-10" />
-          </svg>
-        </span>
-        <span class="nav-label">Analytics Dashboard</span>
+    <header class="topbar">
+      <a href="{% if request.session.empowered_authenticated and active_tab != 'p1' %}{% url 'panel2-dashboard' %}{% else %}{% url 'panel1-login' %}{% endif %}"
+        class="brand">
+        <div class="tip-seal">T.I.P.</div>
+        <div>
+          <div class="brand-title">EmpowerED <span>API</span></div>
+          <div class="brand-sub">Technological Institute of the Philippines</div>
+        </div>
       </a>
+      {% if request.session.empowered_authenticated and active_tab != 'p1' %}
+      <div class="topbar-actions">
+        <button class="status-pill" id="sync-btn" onclick="triggerGlobalSync()">● Trigger Live Canvas API Sync</button>
+        <a href="{% url 'empowered-logout' %}" class="status-pill" id="logout-btn"
+          style="color:var(--rose); border-color:var(--rose); text-decoration:none;">↩ Logout</a>
+      </div>
+      {% endif %}
+    </header>
 
-      <a href="{% url 'panel3-pipeline' %}" class="nav-item {% if active_tab == 'p3' %}active{% endif %}">
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="2" y="6.5" width="5.5" height="11" rx="1.5" />
-            <rect x="16.5" y="6.5" width="5.5" height="11" rx="1.5" />
-            <path d="M7.5 12h2.2l1.3-3 2 6 1.3-3h2.2" />
-          </svg>
-        </span>
-        <span class="nav-label">API Sync Pipeline</span>
-      </a>
+    <div id="toast-container"></div>
 
-      <a href="{% url 'panel4-matrix' %}" class="nav-item {% if active_tab == 'p4' %}active{% endif %}">
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="3" width="7" height="7" rx="1.5" />
-            <rect x="14" y="3" width="7" height="7" rx="1.5" />
-            <rect x="3" y="14" width="7" height="7" rx="1.5" />
-            <circle cx="17.5" cy="17.5" r="3.5" />
-            <path d="M16.3 17.5h2.4M17.5 16.3v2.4" />
-          </svg>
-        </span>
-        <span class="nav-label">Course Mapping Matrix</span>
-      </a>
+    <script src="{% static 'javascript/base.js' %}"></script>
 
-      <a href="{% url 'panel5-competency' %}" class="nav-item {% if active_tab == 'p5' %}active{% endif %}">
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2.5 20.2 7.2 20.2 16.8 12 21.5 3.8 16.8 3.8 7.2" />
-            <polygon points="12 6.8 16.8 9.8 15.5 15.8 12 17.6 7.5 14.8 8.2 9.2" stroke-opacity="0.85" />
-            <circle cx="12" cy="12" r="1.2" fill="currentColor" />
-          </svg>
-        </span>
-        <span class="nav-label">Competency Radar</span>
-      </a>
+    <div class="app-body">
+      {% if request.session.empowered_authenticated and active_tab != 'p1' %}
+      <nav class="module-nav" aria-label="EmpowerED Module Navigation">
+        <a href="{% url 'panel2-dashboard' %}" class="nav-item {% if active_tab == 'p2' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="9.5" cy="9.5" r="6" stroke-dasharray="28 10" />
+              <circle cx="9.5" cy="9.5" r="2.3" />
+              <path d="M15.5 19.5v-4M18.5 19.5v-7M21.5 19.5v-10" />
+            </svg>
+          </span>
+          <span class="nav-label">Analytics Dashboard</span>
+        </a>
 
-      <a href="{% url 'panel6-audit' %}" class="nav-item {% if active_tab == 'p6' %}active{% endif %}">
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 2.8L4.5 6v5.8c0 5 3.2 8.9 7.5 10.4 4.3-1.5 7.5-5.4 7.5-10.4V6L12 2.8z" />
-            <path d="M9.2 12.2l2 2 3.8-4" />
-          </svg>
-        </span>
-        <span class="nav-label">DPA Audit Logs</span>
-      </a>
+        <a href="{% url 'panel3-pipeline' %}" class="nav-item {% if active_tab == 'p3' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="2" y="6.5" width="5.5" height="11" rx="1.5" />
+              <rect x="16.5" y="6.5" width="5.5" height="11" rx="1.5" />
+              <path d="M7.5 12h2.2l1.3-3 2 6 1.3-3h2.2" />
+            </svg>
+          </span>
+          <span class="nav-label">API Sync Pipeline</span>
+        </a>
 
-      <a href="{% url 'panel7-abet' %}" class="nav-item {% if active_tab == 'p7' %}active{% endif %}">
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M14 2.8H6.8A1.8 1.8 0 0 0 5 4.6v14.8a1.8 1.8 0 0 0 1.8 1.8h10.4a1.8 1.8 0 0 0 1.8-1.8V7.8L14 2.8z" />
-            <polyline points="13.8 2.8 13.8 8 19 8" />
-            <path d="M12 11.5v5.5M9.6 14.8L12 17.2l2.4-2.4" />
-          </svg>
-        </span>
-        <span class="nav-label">ABET PDF Export</span>
-      </a>
+        <a href="{% url 'panel4-matrix' %}" class="nav-item {% if active_tab == 'p4' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="3" y="3" width="7" height="7" rx="1.5" />
+              <rect x="14" y="3" width="7" height="7" rx="1.5" />
+              <rect x="3" y="14" width="7" height="7" rx="1.5" />
+              <circle cx="17.5" cy="17.5" r="3.5" />
+              <path d="M16.3 17.5h2.4M17.5 16.3v2.4" />
+            </svg>
+          </span>
+          <span class="nav-label">Course Mapping Matrix</span>
+        </a>
 
-      <a href="{% url 'panel8-config' %}" class="nav-item {% if active_tab == 'p8' %}active{% endif %}">
-        <span class="nav-icon" aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="4" y1="6.5" x2="20" y2="6.5" />
-            <line x1="4" y1="12" x2="20" y2="12" />
-            <line x1="4" y1="17.5" x2="20" y2="17.5" />
-            <circle cx="9" cy="6.5" r="2.2" fill="#10192b" />
-            <circle cx="15.5" cy="12" r="2.2" fill="#10192b" />
-            <circle cx="10.5" cy="17.5" r="2.2" fill="#10192b" />
-          </svg>
-        </span>
-        <span class="nav-label">System Alerts &amp; Config</span>
-      </a>
-    </nav>
-    {% endif %}
+        <a href="{% url 'panel5-competency' %}" class="nav-item {% if active_tab == 'p5' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round">
+              <polygon points="12 2.5 20.2 7.2 20.2 16.8 12 21.5 3.8 16.8 3.8 7.2" />
+              <polygon points="12 6.8 16.8 9.8 15.5 15.8 12 17.6 7.5 14.8 8.2 9.2" stroke-opacity="0.85" />
+              <circle cx="12" cy="12" r="1.2" fill="currentColor" />
+            </svg>
+          </span>
+          <span class="nav-label">Competency Radar</span>
+        </a>
 
-    <main class="{% block container_class %}page-container{% endblock %}">
-      {% block content %}{% endblock %}
-    </main>
-  </div>
+        <a href="{% url 'panel6-audit' %}" class="nav-item {% if active_tab == 'p6' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path d="M12 2.8L4.5 6v5.8c0 5 3.2 8.9 7.5 10.4 4.3-1.5 7.5-5.4 7.5-10.4V6L12 2.8z" />
+              <path d="M9.2 12.2l2 2 3.8-4" />
+            </svg>
+          </span>
+          <span class="nav-label">DPA Audit Logs</span>
+        </a>
 
-  {% block extra_js %}{% endblock %}
-</body>
+        <a href="{% url 'panel7-abet' %}" class="nav-item {% if active_tab == 'p7' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round">
+              <path
+                d="M14 2.8H6.8A1.8 1.8 0 0 0 5 4.6v14.8a1.8 1.8 0 0 0 1.8 1.8h10.4a1.8 1.8 0 0 0 1.8-1.8V7.8L14 2.8z" />
+              <polyline points="13.8 2.8 13.8 8 19 8" />
+              <path d="M12 11.5v5.5M9.6 14.8L12 17.2l2.4-2.4" />
+            </svg>
+          </span>
+          <span class="nav-label">ABET PDF Export</span>
+        </a>
+
+        <a href="{% url 'panel8-config' %}" class="nav-item {% if active_tab == 'p8' %}active{% endif %}">
+          <span class="nav-icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"
+              stroke-linejoin="round">
+              <line x1="4" y1="6.5" x2="20" y2="6.5" />
+              <line x1="4" y1="12" x2="20" y2="12" />
+              <line x1="4" y1="17.5" x2="20" y2="17.5" />
+              <circle cx="9" cy="6.5" r="2.2" fill="#10192b" />
+              <circle cx="15.5" cy="12" r="2.2" fill="#10192b" />
+              <circle cx="10.5" cy="17.5" r="2.2" fill="#10192b" />
+            </svg>
+          </span>
+          <span class="nav-label">System Alerts &amp; Config</span>
+        </a>
+      </nav>
+      {% endif %}
+
+      <main class="{% block container_class %}page-container{% endblock %}">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+
+    {% block extra_js %}{% endblock %}
+  </body>
+
 </html>
