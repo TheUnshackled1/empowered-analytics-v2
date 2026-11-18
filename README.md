@@ -14,6 +14,7 @@
 [![Automated Tests](https://img.shields.io/badge/🧪_Test_Suite-analytics%2Ftests.py-0284c7?style=flat-square)](analytics/tests.py)
 [![Environment Template](https://img.shields.io/badge/🔐_Env_Config-.env.example-9333ea?style=flat-square)](.env.example)
 [![Manage CLI](https://img.shields.io/badge/🐍_Django_CLI-manage.py-0d9488?style=flat-square)](manage.py)
+[![Contributing Guidelines](https://img.shields.io/badge/🤝_Contributing-CONTRIBUTING.md-9333ea?style=flat-square)](CONTRIBUTING.md)
 [![Code of Conduct](https://img.shields.io/badge/📜_Code_of_Conduct-CODE__OF__CONDUCT.md-0d9488?style=flat-square)](CODE_OF_CONDUCT.md)
 [![Requirements](https://img.shields.io/badge/📦_Dependencies-requirements.txt-d97706?style=flat-square)](requirements.txt)
 
@@ -52,6 +53,7 @@
 - 🧪 [22-Test Automated Verification Suite (`analytics/tests.py`)](analytics/tests.py)
 - 🔐 [Environment Variable Template (`.env.example`)](.env.example)
 - 📦 [Python Package Dependencies (`requirements.txt`)](requirements.txt)
+- 🤝 [Developer Contribution Guidelines (`CONTRIBUTING.md`)](CONTRIBUTING.md)
 - 📜 [Contributor Code of Conduct (`CODE_OF_CONDUCT.md`)](CODE_OF_CONDUCT.md)
 
 ---
@@ -380,6 +382,7 @@ All **22 automated unit & integration tests** validate auto-seeding, authenticat
 ├── 🙈 .gitignore                  # Git ignore rules
 ├── 🐍 manage.py                   # Django management CLI
 ├── 📦 requirements.txt            # Python package dependencies
+├── 🤝 CONTRIBUTING.md             # Developer contribution guidelines & PR workflow
 ├── 📜 CODE_OF_CONDUCT.md          # Contributor Code of Conduct (Contributor Covenant v2.1)
 └── 📄 README.md                   # System documentation
 ```
