@@ -16,6 +16,7 @@
 [![Manage CLI](https://img.shields.io/badge/🐍_Django_CLI-manage.py-0d9488?style=flat-square)](manage.py)
 [![Contributing Guidelines](https://img.shields.io/badge/🤝_Contributing-CONTRIBUTING.md-9333ea?style=flat-square)](CONTRIBUTING.md)
 [![Code of Conduct](https://img.shields.io/badge/📜_Code_of_Conduct-CODE__OF__CONDUCT.md-0d9488?style=flat-square)](CODE_OF_CONDUCT.md)
+[![MIT License](https://img.shields.io/badge/⚖️_License-LICENSE-16a34a?style=flat-square)](LICENSE)
 [![Requirements](https://img.shields.io/badge/📦_Dependencies-requirements.txt-d97706?style=flat-square)](requirements.txt)
 
 [![Python](https://img.shields.io/badge/Python-3.12+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
@@ -24,7 +25,7 @@
 [![SQLite](https://img.shields.io/badge/SQLite_/_PostgreSQL-Ready-003B57?logo=sqlite&logoColor=white)](https://www.sqlite.org/)
 [![fpdf2](https://img.shields.io/badge/fpdf2-2.8_SSR_PDF-f59e0b)](https://py-pdf.github.io/fpdf2/)
 [![RA 10173](https://img.shields.io/badge/DPA_Compliance-RA_10173_SHA--256-10b981)](#️-configuration--security)
-[![License](https://img.shields.io/badge/License-MIT-22c55e?logo=opensourceinitiative&logoColor=white)](#-license)
+[![License](https://img.shields.io/badge/License-MIT-22c55e?logo=opensourceinitiative&logoColor=white)](LICENSE)
 
 ---
 
@@ -55,6 +56,7 @@
 - 📦 [Python Package Dependencies (`requirements.txt`)](requirements.txt)
 - 🤝 [Developer Contribution Guidelines (`CONTRIBUTING.md`)](CONTRIBUTING.md)
 - 📜 [Contributor Code of Conduct (`CODE_OF_CONDUCT.md`)](CODE_OF_CONDUCT.md)
+- ⚖️ [MIT License File (`LICENSE`)](LICENSE)
 
 ---
 
@@ -384,6 +386,7 @@ All **22 automated unit & integration tests** validate auto-seeding, authenticat
 ├── 📦 requirements.txt            # Python package dependencies
 ├── 🤝 CONTRIBUTING.md             # Developer contribution guidelines & PR workflow
 ├── 📜 CODE_OF_CONDUCT.md          # Contributor Code of Conduct (Contributor Covenant v2.1)
+├── 📄 LICENSE                     # MIT License
 └── 📄 README.md                   # System documentation
 ```
 
@@ -399,7 +402,7 @@ All **22 automated unit & integration tests** validate auto-seeding, authenticat
 
 ## 📄 License
 
-This project is licensed under the **MIT License** — see the license notice below for full details.
+This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for full details.
 
 ```text
 MIT License
