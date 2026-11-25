@@ -305,9 +305,7 @@
     <div class="abet-split">
       <div id="criteria-list">
         {% for crit in abet.criteria %}
-        <label class="crit-item"><input type="checkbox" data-code="{{ crit.code }}" data-title="{{ crit.title }}" {% if
-            crit.locked %}checked{% endif %} onchange="toggleCriterionOverview(this)"> {{ crit.code }} · {{ crit.title
-          }}</label>
+        <label class="crit-item"><input type="checkbox" data-code="{{ crit.code }}" data-title="{{ crit.title }}" {% if crit.locked %}checked{% endif %} onchange="toggleCriterionOverview(this)"> {{ crit.code }} · {{ crit.title }}</label>
         {% endfor %}
       </div>
       <div style="text-align: center;">
