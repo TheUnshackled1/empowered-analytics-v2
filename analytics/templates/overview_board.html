@@ -317,8 +317,7 @@
           </svg>
           <div class="donut-val" id="ssr-pct">{{ abet.ssr_pct }}%</div>
         </div>
-        <div style="font-size:9px; color:var(--text-sub); margin:4px 0 10px;" id="ssr-count">{{ abet.locked_count }} of
-          {{ abet.total_count }} sections locked</div>
+        <div style="font-size:9px; color:var(--text-sub); margin:4px 0 10px;" id="ssr-count">{{ abet.locked_count }} of {{ abet.total_count }} sections locked</div>
         <button class="btn-gold" onclick="exportABETReport()">PDF Report</button>
         <a href="#" class="print-preview-link" onclick="openOverviewPrintPreview(event)">Print preview ↗</a>
       </div>
