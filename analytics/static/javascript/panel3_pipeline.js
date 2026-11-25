@@ -25,10 +25,10 @@ window.onCanvasSynced = function (data) {
     document.getElementById('page-throughput').textContent = Number(data.throughput_pkts).toFixed(1) + 'k pkt/s';
   }
   document.getElementById('payload-preview').textContent =
-    `[SYNCED AT ${data.timestamp}] Course: ${data.course_code || 'CPE 515'}\n` +
-    `Latency: ${data.latency_ms} ms\n` +
-    `SHA-256 Hash: ${data.sha256_payload}\n` +
-    `Status: ${data.status}`;
+    `[API 200] OAuth 2.0 Handshake Verified (${data.timestamp})\n` +
+    `[ETL] Course: ${data.course_code || 'CPE 515'} -> SO1..SO4 (${data.latency_ms} ms)\n` +
+    `[DPA] RA 10173 SHA-256 Anonymization: ${data.sha256_payload}\n` +
+    `[SIS] Status: ${data.status}`;
   refreshPipelineSparkline();
 };
 

@@ -262,7 +262,7 @@ async function triggerGlobalSync() {
       const data = await res.json();
       data.course_code = courseCode;
       if (btn) btn.textContent = `✓ Synced (${data.latency_ms} ms) | Hash: ${data.sha256_payload}`;
-      showToast(`Canvas LMS synced (${courseCode}) in ${data.latency_ms} ms`);
+      showToast(`Canvas LMS synced (${courseCode}) in ${data.latency_ms} ms · SHA-256 Hash: ${data.sha256_payload}`);
       if (typeof window.onCanvasSynced === 'function') {
         window.onCanvasSynced(data);
       }
