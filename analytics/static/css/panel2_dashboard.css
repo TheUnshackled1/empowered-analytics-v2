@@ -99,26 +99,3 @@
   color: var(--emerald);
   text-align: center;
 }
-
-/* Dock the alert modal to the bottom-right corner on /dashboard/ so the donut gauges & KPI cards stay visible */
-.system-modal-backdrop {
-  justify-content: flex-end;
-  align-items: flex-end;
-  padding: 20px 24px;
-  background: rgba(4, 8, 16, 0.14);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-.system-modal-card {
-  max-width: 340px;
-  transform: translateY(16px) scale(0.95);
-}
-
-.system-modal-backdrop.show .system-modal-card {
-  transform: translateY(0) scale(1);
-}
-
-.system-modal-backdrop.closing .system-modal-card {
-  transform: translateY(14px) scale(0.95);
-}
