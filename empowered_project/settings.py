@@ -109,3 +109,9 @@ SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
 
+# Optional Microsoft Entra ID / Outlook.com OAuth 2.0 Credentials
+MICROSOFT_CLIENT_ID = os.getenv('MICROSOFT_CLIENT_ID', '').strip()
+MICROSOFT_CLIENT_SECRET = os.getenv('MICROSOFT_CLIENT_SECRET', '').strip()
+MICROSOFT_TENANT_ID = os.getenv('MICROSOFT_TENANT_ID', 'common').strip()
+
+

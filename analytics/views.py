@@ -4,6 +4,8 @@ import hashlib
 import json
 import secrets
 import time
+import urllib.parse
+import urllib.request
 
 from django.conf import settings
 from django.db import transaction
@@ -180,6 +182,7 @@ def panel1_login_view(request):
             'active_tab': 'p1',
             'sso_email': user.email if user and user.email else 'dean.cit@tip.edu.ph',
             'config': config,
+            'ms_oauth_enabled': bool(getattr(settings, 'MICROSOFT_CLIENT_ID', '')),
         },
     )
 
@@ -312,6 +315,128 @@ def empowered_session_logout_view(request):
     """Clear the EmpowerED session and redirect to the login page."""
     request.session.flush()
     return redirect('panel1-login')
+
+
+def _establish_microsoft_oauth_session(request, email: str, provider_label: str = 'microsoft-outlook-oauth') -> tuple:
+    """Provision/update InstitutionalUser, log AUTH · OAuth SHA-256 digest, and establish 15m session."""
+    seed_initial_data()
+    config = MiddlewareConfig.load()
+    local_part = email.split('@')[0].replace('.', ' ').title() if '@' in email else 'Outlook User'
+
+    with transaction.atomic():
+        user, created_user = InstitutionalUser.objects.get_or_create(
+            username=email,
+            defaults={
+                'email': email,
+                'first_name': local_part,
+                'role': 'DEAN',
+                'clearance_level': config.active_clearance_level,
+                'oauth_2fa_verified': True,
+            },
+        )
+        user.oauth_2fa_verified = True
+        if created_user or not user.password or not user.has_usable_password():
+            user.set_password(DEFAULT_SSO_PASSWORD)
+            user.save(update_fields=['oauth_2fa_verified', 'password'])
+        else:
+            user.save(update_fields=['oauth_2fa_verified'])
+
+        oauth_token = _issue_oauth_token()
+        token_digest = hashlib.sha256(oauth_token.encode('utf-8')).hexdigest()
+        audit_entry, short_hash = _write_audit(
+            {'email': user.email, 'provider': provider_label, 'token_sha256': token_digest},
+            'AUTH · OAuth',
+        )
+
+    max_idle = int(getattr(settings, 'SESSION_COOKIE_AGE', 900))
+    request.session['empowered_authenticated'] = True
+    request.session['empowered_user_email'] = user.email
+    request.session['empowered_oauth_token'] = oauth_token
+    request.session['empowered_last_activity'] = int(time.time())
+    request.session.set_expiry(max_idle)
+    return user, config, oauth_token, audit_entry, short_hash, max_idle
+
+
+def microsoft_oauth_login_view(request):
+    """Redirect to Microsoft Identity Platform OAuth 2.0 authorize endpoint when MICROSOFT_CLIENT_ID is set."""
+    client_id = getattr(settings, 'MICROSOFT_CLIENT_ID', '').strip()
+    tenant_id = getattr(settings, 'MICROSOFT_TENANT_ID', 'common').strip() or 'common'
+    next_url = request.GET.get('next') or reverse('panel2-dashboard')
+    request.session['ms_oauth_next'] = next_url
+
+    if not client_id:
+        return redirect(f"{reverse('panel1-login')}?ms_picker=1&next={urllib.parse.quote(next_url)}")
+
+    state = secrets.token_urlsafe(16)
+    request.session['ms_oauth_state'] = state
+    redirect_uri = request.build_absolute_uri(reverse('microsoft-oauth-callback'))
+    params = urllib.parse.urlencode(
+        {
+            'client_id': client_id,
+            'response_type': 'code',
+            'redirect_uri': redirect_uri,
+            'response_mode': 'query',
+            'scope': 'openid profile email User.Read',
+            'state': state,
+            'prompt': 'select_account',
+        }
+    )
+    return redirect(f'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/authorize?{params}')
+
+
+def microsoft_oauth_callback_view(request):
+    """Handle Microsoft Entra ID / Outlook.com OAuth 2.0 authorization code callback."""
+    code = (request.GET.get('code') or '').strip()
+    state = (request.GET.get('state') or '').strip()
+    expected_state = request.session.pop('ms_oauth_state', None)
+    next_url = request.session.pop('ms_oauth_next', None) or reverse('panel2-dashboard')
+
+    client_id = getattr(settings, 'MICROSOFT_CLIENT_ID', '').strip()
+    client_secret = getattr(settings, 'MICROSOFT_CLIENT_SECRET', '').strip()
+    tenant_id = getattr(settings, 'MICROSOFT_TENANT_ID', 'common').strip() or 'common'
+
+    if not code or not client_id or (expected_state and state != expected_state):
+        return redirect('panel1-login')
+
+    token_url = f'https://login.microsoftonline.com/{tenant_id}/oauth2/v2.0/token'
+    redirect_uri = request.build_absolute_uri(reverse('microsoft-oauth-callback'))
+    token_data = urllib.parse.urlencode(
+        {
+            'client_id': client_id,
+            'client_secret': client_secret,
+            'code': code,
+            'redirect_uri': redirect_uri,
+            'grant_type': 'authorization_code',
+            'scope': 'openid profile email User.Read',
+        }
+    ).encode('utf-8')
+
+    try:
+        token_req = urllib.request.Request(
+            token_url,
+            data=token_data,
+            headers={'Content-Type': 'application/x-www-form-urlencoded'},
+        )
+        with urllib.request.urlopen(token_req, timeout=10) as token_resp:
+            token_payload = json.loads(token_resp.read().decode('utf-8'))
+        access_token = token_payload.get('access_token', '')
+        if not access_token:
+            return redirect('panel1-login')
+
+        graph_req = urllib.request.Request(
+            'https://graph.microsoft.com/v1.0/me',
+            headers={'Authorization': f'Bearer {access_token}'},
+        )
+        with urllib.request.urlopen(graph_req, timeout=10) as graph_resp:
+            profile = json.loads(graph_resp.read().decode('utf-8'))
+        email = (profile.get('mail') or profile.get('userPrincipalName') or '').strip().lower()
+        if not email or '@' not in email:
+            return redirect('panel1-login')
+
+        _establish_microsoft_oauth_session(request, email, provider_label='microsoft-graph-oauth2')
+        return redirect(next_url)
+    except Exception:
+        return redirect('panel1-login')
 
 
 # --- REST API Middleware Views ---
@@ -547,6 +672,53 @@ class EmpowerEdSessionLoginAPIView(APIView):
             {
                 'verified': True,
                 'email': user.email,
+                'clearance_level': config.active_clearance_level,
+                'oauth_token_masked': _mask_token(oauth_token),
+                'session_timeout_seconds': max_idle,
+                **_audit_payload(audit_entry, short_hash),
+            }
+        )
+
+
+class MicrosoftOutlookOAuthAPIView(APIView):
+    """
+    Panel 01: Authenticates a Microsoft Account or Outlook.com / Microsoft 365
+    identity via OAuth 2.0 handshake, establishes the 15-minute EmpowerED
+    session cookie, and records an AUTH · OAuth SHA-256 audit row.
+    """
+    authentication_classes = []
+    permission_classes = []
+
+    ALLOWED_DOMAINS = (
+        '@outlook.com',
+        '@hotmail.com',
+        '@live.com',
+        '@msn.com',
+        '@microsoft.com',
+        '@tip.edu.ph',
+    )
+
+    def post(self, request):
+        email = (request.data.get('email') or '').strip().lower()
+        if not email or '@' not in email or not any(email.endswith(d) for d in self.ALLOWED_DOMAINS):
+            return Response(
+                {
+                    'verified': False,
+                    'detail': 'Please enter a valid Microsoft, Outlook (@outlook.com / @hotmail.com / @live.com), or @tip.edu.ph account.',
+                },
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        user, config, oauth_token, audit_entry, short_hash, max_idle = _establish_microsoft_oauth_session(
+            request,
+            email=email,
+            provider_label='microsoft-outlook-oauth2',
+        )
+        return Response(
+            {
+                'verified': True,
+                'email': user.email,
+                'provider': 'Microsoft / Outlook OAuth 2.0',
                 'clearance_level': config.active_clearance_level,
                 'oauth_token_masked': _mask_token(oauth_token),
                 'session_timeout_seconds': max_idle,

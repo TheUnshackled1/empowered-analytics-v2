@@ -37,6 +37,65 @@
   <button class="btn-gold btn-sso-login" id="btn-sso-submit" data-redirect-url="{% url 'panel2-dashboard' %}" onclick="handleInstitutionalLogin(this)">
     ⊞ Log in with T.I.P. Microsoft Account
   </button>
+
+  <div class="login-or-divider" aria-hidden="true">
+    <span>or</span>
+  </div>
+
+  <button type="button" class="btn-ms-outlook" id="btn-ms-outlook-login" data-ms-oauth-enabled="{{ ms_oauth_enabled|yesno:'true,false' }}" data-ms-login-url="{% url 'microsoft-oauth-login' %}" data-redirect-url="{% url 'panel2-dashboard' %}" onclick="handleMicrosoftOutlookSignIn(this)">
+    <svg class="ms-logo-svg" viewBox="0 0 21 21" aria-hidden="true">
+      <rect x="1" y="1" width="9" height="9" fill="#f25022"></rect>
+      <rect x="11" y="1" width="9" height="9" fill="#7fba00"></rect>
+      <rect x="1" y="11" width="9" height="9" fill="#00a4ef"></rect>
+      <rect x="11" y="11" width="9" height="9" fill="#ffb900"></rect>
+    </svg>
+    <span>Sign in with Microsoft or Outlook</span>
+  </button>
+</div>
+
+<!-- Microsoft / Outlook OAuth 2.0 Account Picker Modal -->
+<div id="ms-outlook-modal" class="ms-oauth-backdrop" aria-hidden="true" role="dialog" aria-modal="true" onclick="handleMsModalBackdropClick(event)">
+  <div class="ms-oauth-card" onclick="event.stopPropagation()">
+    <div class="ms-oauth-header">
+      <div class="ms-oauth-brand">
+        <svg class="ms-logo-svg" viewBox="0 0 21 21" aria-hidden="true">
+          <rect x="1" y="1" width="9" height="9" fill="#f25022"></rect>
+          <rect x="11" y="1" width="9" height="9" fill="#7fba00"></rect>
+          <rect x="1" y="11" width="9" height="9" fill="#00a4ef"></rect>
+          <rect x="11" y="11" width="9" height="9" fill="#ffb900"></rect>
+        </svg>
+        <span>Microsoft &amp; Outlook Single Sign-On</span>
+      </div>
+      <button type="button" class="system-modal-close-btn" onclick="closeMicrosoftOutlookModal()" aria-label="Close Microsoft sign in">&times;</button>
+    </div>
+
+    <div class="ms-oauth-title">Pick an account or sign in with Outlook</div>
+    <div class="ms-oauth-sub">OAuth 2.0 + 2FA container token will be issued for EmpowerED API</div>
+
+    <div class="ms-account-list">
+      <button type="button" class="ms-account-tile" onclick="submitMicrosoftOutlookOAuth('dean.cit@tip.edu.ph')">
+        <span class="ms-account-avatar">DC</span>
+        <span class="ms-account-info">
+          <strong>EmpowerED Dean (T.I.P. Microsoft 365)</strong>
+          <small>dean.cit@tip.edu.ph · Institutional Account</small>
+        </span>
+      </button>
+      <button type="button" class="ms-account-tile" onclick="submitMicrosoftOutlookOAuth('jtcoronel@outlook.com')">
+        <span class="ms-account-avatar ms-avatar-blue">JT</span>
+        <span class="ms-account-info">
+          <strong>John Tyrone Coronel (Outlook)</strong>
+          <small>jtcoronel@outlook.com · Personal Microsoft Account</small>
+        </span>
+      </button>
+    </div>
+
+    <label class="input-lbl login-input-lbl" for="ms-outlook-email-input">Or enter your Microsoft / Outlook email</label>
+    <input class="input-box" id="ms-outlook-email-input" type="email" placeholder="name@outlook.com, @hotmail.com, or @tip.edu.ph" autocomplete="email">
+
+    <button type="button" class="btn-gold btn-ms-continue" onclick="submitMicrosoftOutlookOAuth()">
+      Continue with Microsoft / Outlook
+    </button>
+  </div>
 </div>
 {% endblock %}
 

@@ -54,6 +54,12 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
             login_html.index('id="sso-password-input"'),
             login_html.index('btn-sso-login'),
         )
+        self.assertIn('id="btn-ms-outlook-login"', login_html)
+        self.assertIn('Sign in with Microsoft or Outlook', login_html)
+        self.assertLess(
+            login_html.index('btn-sso-login'),
+            login_html.index('btn-ms-outlook-login'),
+        )
         self.assertNotIn('<span class="badge-num">01</span>', login_html)
         self.assertNotIn('2FA · OAuth 2.0 Protection Active', login_html)
         self.assertNotIn('class="module-nav"', login_html)
@@ -317,6 +323,31 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         self.assertTrue(login_res.json()['verified'])
 
         # Session cookie is now set — dashboard must return 200
+        dashboard = self.client.get(reverse('panel2-dashboard'))
+        self.assertEqual(dashboard.status_code, 200)
+
+    def test_microsoft_outlook_oauth_login_establishes_session_and_audits(self):
+        """POST /api/v2/auth/microsoft-oauth/ signs in @outlook.com / @tip.edu.ph users and rejects invalid domains."""
+        bad = self.client.post(
+            reverse('microsoft-outlook-oauth'),
+            {'email': 'intruder@gmail.com'},
+            format='json',
+        )
+        self.assertEqual(bad.status_code, 400)
+        self.assertFalse(bad.json()['verified'])
+
+        ok = self.client.post(
+            reverse('microsoft-outlook-oauth'),
+            {'email': 'jtcoronel@outlook.com'},
+            format='json',
+        )
+        self.assertEqual(ok.status_code, 200)
+        body = ok.json()
+        self.assertTrue(body['verified'])
+        self.assertEqual(body['email'], 'jtcoronel@outlook.com')
+        self.assertTrue(body['oauth_token_masked'].startswith('tip_oauth_'))
+        self.assertEqual(body['action'], 'AUTH · OAuth')
+
         dashboard = self.client.get(reverse('panel2-dashboard'))
         self.assertEqual(dashboard.status_code, 200)
 
