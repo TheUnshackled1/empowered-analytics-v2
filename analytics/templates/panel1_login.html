@@ -20,21 +20,28 @@
     <input class="input-box" id="sso-email-input" type="email" value="{{ sso_email }}" autocomplete="username" required>
     <label class="input-lbl login-input-lbl" for="sso-password-input">Password</label>
     <div class="password-field-wrap">
-      <input class="input-box password-input" id="sso-password-input" type="password" value="TIP@EmpowerED2026" autocomplete="current-password" required>
-      <button type="button" class="password-toggle-btn" id="sso-password-toggle" onclick="togglePasswordVisibility()" aria-label="Show password" title="Show password">
-        <svg id="eye-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <input class="input-box password-input" id="sso-password-input" type="password" value="TIP@EmpowerED2026"
+        autocomplete="current-password" required>
+      <button type="button" class="password-toggle-btn" id="sso-password-toggle" onclick="togglePasswordVisibility()"
+        aria-label="Show password" title="Show password">
+        <svg id="eye-icon-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+          stroke-linecap="round" stroke-linejoin="round">
           <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
           <circle cx="12" cy="12" r="3"></circle>
         </svg>
-        <svg id="eye-icon-closed" class="is-hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+        <svg id="eye-icon-closed" class="is-hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+          stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path
+            d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24">
+          </path>
           <line x1="1" y1="1" x2="23" y2="23"></line>
         </svg>
       </button>
     </div>
   </div>
 
-  <button class="btn-gold btn-sso-login" id="btn-sso-submit" data-redirect-url="{% url 'panel2-dashboard' %}" onclick="handleInstitutionalLogin(this)">
+  <button class="btn-gold btn-sso-login" id="btn-sso-submit" data-redirect-url="{% url 'panel2-dashboard' %}"
+    onclick="handleInstitutionalLogin(this)">
     ⊞ Log in with T.I.P. Microsoft Account
   </button>
 
@@ -42,7 +49,10 @@
     <span>or</span>
   </div>
 
-  <button type="button" class="btn-ms-outlook" id="btn-ms-outlook-login" data-ms-oauth-enabled="{{ ms_oauth_enabled|yesno:'true,false' }}" data-ms-login-url="{% url 'microsoft-oauth-login' %}" data-redirect-url="{% url 'panel2-dashboard' %}" onclick="handleMicrosoftOutlookSignIn(this)">
+  <button type="button" class="btn-ms-outlook" id="btn-ms-outlook-login"
+    data-ms-oauth-enabled="{{ ms_oauth_enabled|yesno:'true,false' }}"
+    data-ms-login-url="{% url 'microsoft-oauth-login' %}" data-redirect-url="{% url 'panel2-dashboard' %}"
+    onclick="handleMicrosoftOutlookSignIn(this)">
     <svg class="ms-logo-svg" viewBox="0 0 21 21" aria-hidden="true">
       <rect x="1" y="1" width="9" height="9" fill="#f25022"></rect>
       <rect x="11" y="1" width="9" height="9" fill="#7fba00"></rect>
@@ -54,7 +64,8 @@
 </div>
 
 <!-- Microsoft / Outlook OAuth 2.0 Account Picker Modal -->
-<div id="ms-outlook-modal" class="ms-oauth-backdrop" aria-hidden="true" role="dialog" aria-modal="true" onclick="handleMsModalBackdropClick(event)">
+<div id="ms-outlook-modal" class="ms-oauth-backdrop" aria-hidden="true" role="dialog" aria-modal="true"
+  onclick="handleMsModalBackdropClick(event)">
   <div class="ms-oauth-card" onclick="event.stopPropagation()">
     <div class="ms-oauth-header">
       <div class="ms-oauth-brand">
@@ -66,7 +77,8 @@
         </svg>
         <span>Microsoft &amp; Outlook Single Sign-On</span>
       </div>
-      <button type="button" class="system-modal-close-btn" onclick="closeMicrosoftOutlookModal()" aria-label="Close Microsoft sign in">&times;</button>
+      <button type="button" class="system-modal-close-btn" onclick="closeMicrosoftOutlookModal()"
+        aria-label="Close Microsoft sign in">&times;</button>
     </div>
 
     <div class="ms-oauth-title">Pick an account or sign in with Outlook</div>
@@ -80,17 +92,20 @@
           <small>dean.cit@tip.edu.ph · Institutional Account</small>
         </span>
       </button>
-      <button type="button" class="ms-account-tile" onclick="submitMicrosoftOutlookOAuth('jtcoronel@outlook.com')">
+      <button type="button" class="ms-account-tile"
+        onclick="submitMicrosoftOutlookOAuth('janjanpagunsan77@outlook.com')">
         <span class="ms-account-avatar ms-avatar-blue">JT</span>
         <span class="ms-account-info">
           <strong>John Tyrone Coronel (Outlook)</strong>
-          <small>jtcoronel@outlook.com · Personal Microsoft Account</small>
+          <small>janjanpagunsan77@outlook.com · Personal Microsoft Account</small>
         </span>
       </button>
     </div>
 
-    <label class="input-lbl login-input-lbl" for="ms-outlook-email-input">Or enter your Microsoft / Outlook email</label>
-    <input class="input-box" id="ms-outlook-email-input" type="email" placeholder="name@outlook.com, @hotmail.com, or @tip.edu.ph" autocomplete="email">
+    <label class="input-lbl login-input-lbl" for="ms-outlook-email-input">Or enter your Microsoft / Outlook
+      email</label>
+    <input class="input-box" id="ms-outlook-email-input" type="email"
+      placeholder="name@outlook.com, @hotmail.com, or @tip.edu.ph" autocomplete="email">
 
     <button type="button" class="btn-gold btn-ms-continue" onclick="submitMicrosoftOutlookOAuth()">
       Continue with Microsoft / Outlook
