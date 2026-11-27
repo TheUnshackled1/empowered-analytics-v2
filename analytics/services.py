@@ -570,9 +570,9 @@ def build_abet_ssr_pdf(criteria: list[dict], audit_hash: str) -> bytes:
     pdf.set_xy(41, 275.5)
     pdf.set_text_color(15, 23, 42)
     pdf.set_font('Helvetica', 'B', 8.0)
-    pdf.cell(50, 4.2, 'Tel: (02) 8911-0964 / 8733-9117', new_x='LMARGIN', new_y='NEXT')
+    pdf.cell(45, 4.2, 'Tel: (02) 8911-0964', new_x='LMARGIN', new_y='NEXT')
     pdf.set_x(41)
-    pdf.cell(50, 4.2, 'Web: tip.edu.ph | empowered.tip.edu.ph', new_x='LMARGIN', new_y='NEXT')
+    pdf.cell(45, 4.2, 'Web: www.tip.edu.ph', new_x='LMARGIN', new_y='NEXT')
 
     # Right: EMPOWERED T.I.P. EXCELLENCE! Motto & Core Values
     pdf.set_xy(95, 274.5)
