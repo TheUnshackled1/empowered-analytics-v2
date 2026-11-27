@@ -7,22 +7,24 @@
 body {
   font-family: 'Segoe UI', Arial, sans-serif;
   color: #0f172a;
-  background: #e2e8f0;
-  padding: 24px 16px 40px;
+  background: #cbd5e1;
+  padding: 22px 16px 38px;
   margin: 0;
-  line-height: 1.4;
+  line-height: 1.38;
 }
 
 .toolbar {
-  max-width: 880px;
-  margin: 0 auto 16px;
+  max-width: 890px;
+  margin: 0 auto 14px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #0f172a;
+  background: #0b111e;
+  border: 1px solid #334155;
+  border-left: 4px solid #f59e0b;
   padding: 10px 18px;
   border-radius: 8px;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.18);
+  box-shadow: 0 4px 14px rgba(11, 17, 30, 0.22);
 }
 
 .btn-back {
@@ -37,12 +39,12 @@ body {
 }
 
 .btn-print {
-  background: #f59e0b;
-  color: #0f172a;
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #0b111e;
   border: none;
   padding: 8px 18px;
-  font-weight: 700;
-  font-size: 13px;
+  font-weight: 800;
+  font-size: 12.5px;
   border-radius: 6px;
   cursor: pointer;
 }
@@ -51,412 +53,556 @@ body {
   filter: brightness(1.06);
 }
 
+/* A4 Institutional Sheet Container */
+.oas-sheet {
+  max-width: 890px;
+  min-height: 1120px;
+  margin: 0 auto;
+  background: #ffffff;
+  padding: 24px 32px 20px;
+  border-radius: 4px;
+  border-top: 6px solid #0b111e;
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.22);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
 
-  /* A4 Institutional Sheet Container */
-  .oas-sheet {
-    max-width: 880px;
-    min-height: 1120px;
-    margin: 0 auto;
+
+.oas-sheet-top {
+  flex: 1 1 auto;
+}
+
+
+/* Unique T.I.P. 3-Column Black & Gold Letterhead Header */
+.tip-letterhead-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding-bottom: 8px;
+}
+
+
+.tip-seal-wrap {
+  flex: 0 0 82px;
+  width: 82px;
+  height: 82px;
+}
+
+.tip-seal-svg {
+  width: 82px;
+  height: 82px;
+  display: block;
+}
+
+
+.tip-header-text {
+  flex: 1 1 auto;
+}
+
+.tip-republic-kicker {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #b45309;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+
+.tip-univ-name {
+  font-size: 22.5px;
+  font-weight: 900;
+  color: #0b111e;
+  letter-spacing: -0.3px;
+  line-height: 1.12;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.tip-dept-bar {
+  display: inline-block;
+  background: #0b111e;
+  color: #fbbf24;
+  font-size: 9.8px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  padding: 2.5px 8px;
+  border-radius: 3px;
+  margin-bottom: 4px;
+}
+
+.tip-campuses {
+  font-size: 10.8px;
+  color: #334155;
+}
+
+.tip-campuses strong {
+  color: #0f172a;
+}
+
+/* Right QA Document Control Box */
+.tip-doc-control {
+  flex: 0 0 172px;
+  border: 1.5px solid #0b111e;
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 9.5px;
+  background: #f8fafc;
+}
+
+.doc-ctrl-head {
+  background: #0b111e;
+  color: #fbbf24;
+  font-weight: 800;
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  text-align: center;
+  padding: 3px 6px;
+}
+
+
+.doc-ctrl-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 2.5px 7px;
+  border-top: 1px solid #cbd5e1;
+  color: #475569;
+}
+
+
+.doc-ctrl-row strong {
+  color: #0f172a;
+  font-family: Consolas, monospace;
+  font-size: 9.5px;
+}
+
+/* Double Obsidian & Gold Ribbon Divider */
+.tip-letterhead-rule {
+  margin: 4px 0 12px;
+}
+
+.rule-obsidian {
+  height: 3.5px;
+  background: #0b111e;
+}
+
+.rule-gold {
+  height: 2.5px;
+  background: linear-gradient(90deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%);
+}
+
+
+/* Split-Layout Obsidian & Gold Executive Report Banner */
+.report-header {
+  background: linear-gradient(135deg, #0b111e 0%, #1e293b 100%);
+  color: #f8fafc;
+  padding: 11px 16px;
+  border-radius: 5px;
+  border: 1px solid #334155;
+  border-left: 5px solid #f59e0b;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+}
+
+
+.banner-left {
+  flex: 1 1 auto;
+}
+
+.banner-kicker {
+  font-size: 9.5px;
+  font-weight: 800;
+  color: #fbbf24;
+  letter-spacing: 0.9px;
+  margin-bottom: 2px;
+}
+
+
+.report-header h1 {
+  font-size: 14px;
+  font-weight: 800;
+  color: #ffffff;
+  margin: 0 0 3px;
+}
+
+
+.report-header .sub {
+  font-size: 10.8px;
+  color: #cbd5e1;
+}
+
+.report-header .sub strong {
+  color: #f8fafc;
+}
+
+
+.banner-right-card {
+  flex: 0 0 auto;
+  background: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(245, 158, 11, 0.45);
+  border-radius: 5px;
+  padding: 7px 12px;
+  text-align: right;
+  font-size: 10.8px;
+}
+
+
+.readiness-line {
+  color: #e2e8f0;
+  margin-bottom: 3px;
+}
+
+.readiness-line strong {
+  color: #34d399;
+  font-size: 12.5px;
+}
+
+.readiness-line span {
+  color: #94a3b8;
+  font-size: 10px;
+}
+
+
+.header-right {
+  color: #cbd5e1;
+  font-size: 10.5px;
+}
+
+.header-right code {
+  background: rgba(245, 158, 11, 0.18);
+  color: #fbbf24;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-family: Consolas, monospace;
+  font-weight: 700;
+}
+
+
+.unsealed {
+  color: #fbbf24;
+  font-weight: 800;
+}
+
+
+/* 4 Executive KPI Cards */
+.kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+
+.kpi {
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  border-top: 3.5px solid #0b111e;
+  border-radius: 5px;
+  padding: 7px 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #334155;
+  position: relative;
+}
+
+
+.kpi-tag {
+  display: inline-block;
+  font-size: 8.5px;
+  font-weight: 800;
+  letter-spacing: 0.6px;
+  color: #b45309;
+  background: #fef3c7;
+  border: 1px solid #fde68a;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-bottom: 2px;
+}
+
+.kpi strong {
+  font-size: 20px;
+  font-weight: 900;
+  display: block;
+  color: #0b111e;
+  line-height: 1.18;
+}
+
+
+/* Section Headings with Gold Badge Numbers */
+h3 {
+  font-size: 12.5px;
+  font-weight: 800;
+  color: #0b111e;
+  margin: 10px 0 5px;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+}
+
+
+.sec-num {
+  background: #0b111e;
+  color: #fbbf24;
+  font-size: 10px;
+  font-weight: 900;
+  padding: 2px 6px;
+  border-radius: 3px;
+  border-left: 2.5px solid #f59e0b;
+}
+
+
+/* T.I.P. Obsidian & Gold Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 5px;
+  font-size: 11.2px;
+}
+
+th,
+td {
+  border: 1px solid #cbd5e1;
+  padding: 5px 9px;
+  text-align: center;
+}
+
+
+th {
+  background: #0b111e;
+  color: #fbbf24;
+  border-color: #1e293b;
+  border-bottom: 2.5px solid #f59e0b;
+  font-weight: 800;
+  font-size: 10.8px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+}
+
+
+tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+
+.left {
+  text-align: left;
+}
+
+
+.center {
+  text-align: center;
+}
+
+
+.so-pill {
+  display: inline-block;
+  min-width: 22px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-weight: 800;
+  font-size: 10.5px;
+}
+
+
+.so-i {
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fde68a;
+}
+
+
+.so-e {
+  background: #dbeafe;
+  color: #1e40af;
+  border: 1px solid #bfdbfe;
+}
+
+
+.so-r {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #bbf7d0;
+}
+
+
+.so-unmapped {
+  color: #94a3b8;
+  font-weight: 700;
+}
+
+
+.status-verified {
+  display: inline-block;
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+  padding: 1px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.status-pending {
+  display: inline-block;
+  background: #fef3c7;
+  color: #92400e;
+  border: 1px solid #fcd34d;
+  padding: 1px 8px;
+  border-radius: 3px;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.legend {
+  font-size: 10px;
+  color: #475569;
+  margin: 2px 0 6px;
+  text-align: right;
+  font-style: italic;
+}
+
+.dpa-compliance-note {
+  margin-top: 8px;
+  padding: 7px 11px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-left: 4px solid #f59e0b;
+  border-radius: 4px;
+  font-size: 10.2px;
+  color: #1e293b;
+  line-height: 1.35;
+}
+
+/* Unique T.I.P. 3-Zone Institutional Footer */
+.tip-letterhead-footer {
+  margin-top: 10px;
+}
+
+.tip-footer-body {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.tip-footer-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.accred-badge {
+  border: 1.5px solid #0b111e;
+  border-radius: 4px;
+  padding: 3px 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.12;
+  background: #f8fafc;
+}
+
+.badge-abet {
+  border-top: 3px solid #f59e0b;
+}
+
+.badge-iso {
+  border-top: 3px solid #0b111e;
+}
+
+.badge-top {
+  font-size: 7px;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.4px;
+}
+
+.accred-badge strong {
+  font-size: 9.5px;
+  font-weight: 900;
+  color: #0b111e;
+}
+
+.badge-sub {
+  font-size: 7.2px;
+  font-weight: 800;
+  color: #b45309;
+}
+
+  .tip-footer-center {
+    text-align: center;
+    font-size: 10px;
+    color: #334155;
+    line-height: 1.32;
+  }
+
+  .tip-footer-center strong {
+    color: #0b111e;
+  }
+
+.tip-footer-right {
+  text-align: right;
+}
+
+.tip-stamp-pill {
+  display: inline-flex;
+  align-items: center;
+  background: #0b111e;
+  border: 1.5px solid #f59e0b;
+  border-radius: 4px;
+  overflow: hidden;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.5px;
+}
+
+.stamp-gold {
+  background: #f59e0b;
+  color: #0b111e;
+  padding: 3px 8px;
+}
+
+.stamp-white {
+  color: #fbbf24;
+  padding: 3px 10px;
+}
+
+.tip-core-values {
+  font-size: 9px;
+  font-weight: 700;
+  color: #475569;
+  margin-top: 3px;
+}
+
+@page {
+  size: A4 portrait;
+  margin: 8mm 10mm;
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
     background: #ffffff;
-    padding: 26px 34px 22px;
-    border-radius: 4px;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.16);
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
+    padding: 0;
   }
 
-  .oas-sheet-top {
-    flex: 1 1 auto;
+  .oas-sheet {
+    max-width: 100%;
+    min-height: 277mm;
+    padding: 0;
+    border-top: none;
+    box-shadow: none;
+    border-radius: 0;
   }
-
-  /* Top T.I.P. Institutional Letterhead Header */
-  .tip-letterhead-header {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-    padding-bottom: 10px;
-  }
-
-
-    .tip-seal-wrap {
-      flex: 0 0 84px;
-      width: 84px;
-      height: 84px;
-    }
-
-
-      .tip-seal-svg {
-        width: 84px;
-        height: 84px;
-        display: block;
-      }
-
-
-        .tip-header-text {
-          flex: 1;
-        }
-
-
-          .tip-univ-name {
-            font-size: 25px;
-            font-weight: 800;
-            color: #1e3a8a;
-            letter-spacing: -0.3px;
-            line-height: 1.15;
-            margin-bottom: 3px;
-          }
-
-          .tip-campuses {
-            font-size: 12.5px;
-            font-weight: 600;
-            color: #1d4ed8;
-            margin-bottom: 4px;
-          }
-
-          .tip-vision-main {
-            font-size: 12.5px;
-            font-weight: 700;
-            font-style: italic;
-            color: #15803d;
-            line-height: 1.25;
-          }
-
-          .tip-vision-sub {
-            font-size: 10.5px;
-            font-style: italic;
-            color: #16a34a;
-            margin-top: 1px;
-          }
-
-          .tip-letterhead-rule {
-            height: 4px;
-            width: 100%;
-            background: linear-gradient(90deg, #15803d 0%, #16a34a 55%, #f59e0b 100%);
-            border-radius: 2px;
-            margin: 4px 0 12px;
-          }
-
-          /* Dark Navy OAS Executive Report Title Banner */
-          .report-header {
-            background: #0b111e;
-            color: #f8fafc;
-            padding: 12px 16px;
-            border-radius: 4px;
-            border-left: 5px solid #16a34a;
-            margin-bottom: 14px;
-          }
-
-          .report-header h1 {
-            font-size: 14.5px;
-            font-weight: 800;
-            color: #22c55e;
-            margin: 0 0 3px;
-            letter-spacing: 0.2px;
-          }
-
-          .report-header .sub {
-            font-size: 12px;
-            font-weight: 700;
-            color: #f8fafc;
-            margin-bottom: 5px;
-          }
-
-          .banner-meta-row {
-            font-size: 11px;
-            color: #cbd5e1;
-            display: flex;
-            flex-wrap: wrap;
-            align-items: center;
-            gap: 8px;
-          }
-
-          .banner-meta-row strong {
-            color: #ffffff;
-          }
-
-          .banner-meta-row code {
-            background: rgba(245, 158, 11, 0.16);
-            color: #fbbf24;
-            padding: 1px 6px;
-            border-radius: 4px;
-            font-family: Consolas, monospace;
-            font-size: 11px;
-          }
-
-          .meta-sep {
-            color: #64748b;
-          }
-
-          .unsealed {
-            color: #fbbf24;
-            font-weight: 700;
-          }
-
-          /* 4 Executive KPI Cards */
-          .kpi-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 12px;
-          }
-
-          .kpi {
-            border: 1px solid #cbd5e1;
-            background: #f8fafc;
-            border-top: 3px solid #14532d;
-            border-radius: 5px;
-            padding: 8px 10px;
-            text-align: center;
-            font-size: 11.5px;
-            font-weight: 600;
-            color: #334155;
-          }
-
-          .kpi strong {
-            font-size: 20px;
-            font-weight: 800;
-            display: block;
-            color: #14532d;
-            line-height: 1.2;
-          }
-
-          /* Section Headings */
-          h3 {
-            font-size: 13px;
-            font-weight: 800;
-            color: #0f172a;
-            margin: 12px 0 6px;
-            text-align: left;
-            letter-spacing: 0.1px;
-          }
-
-          /* OAS Tables */
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 6px;
-            font-size: 11.5px;
-          }
-
-          th,
-          td {
-            border: 1px solid #94a3b8;
-            padding: 5.5px 9px;
-            text-align: center;
-          }
-
-          th {
-            background: #14532d;
-            color: #ffffff;
-            font-weight: 700;
-            font-size: 11.5px;
-            letter-spacing: 0.2px;
-          }
-
-          tbody tr:nth-child(even) {
-            background: #f8fafc;
-          }
-
-          .left {
-            text-align: left;
-          }
-
-          .center {
-            text-align: center;
-          }
-
-            .so-pill {
-              display: inline-block;
-              min-width: 22px;
-              padding: 1px 6px;
-              border-radius: 4px;
-              font-weight: 800;
-              font-size: 11px;
-            }
-
-              .so-i {
-                background: #fef3c7;
-                color: #92400e;
-              }
-
-              .so-e {
-                background: #dbeafe;
-                color: #1e40af;
-              }
-
-              .so-r {
-                background: #dcfce7;
-                color: #166534;
-              }
-
-              .so-unmapped {
-                color: #94a3b8;
-                font-weight: 700;
-              }
-
-              .status-verified {
-                color: #15803d;
-                font-weight: 800;
-              }
-
-              .status-pending {
-                color: #b45309;
-                font-weight: 700;
-              }
-
-              .legend {
-                font-size: 10.5px;
-                color: #475569;
-                margin: 2px 0 8px;
-                text-align: right;
-                font-style: italic;
-              }
-
-              .dpa-compliance-note {
-                margin-top: 10px;
-                padding: 8px 12px;
-                background: #f8fafc;
-                border: 1px solid #cbd5e1;
-                border-left: 4px solid #0f172a;
-                border-radius: 4px;
-                font-size: 10.5px;
-                color: #334155;
-                line-height: 1.38;
-              }
-
-              /* Bottom T.I.P. Institutional Letterhead Footer */
-              .tip-letterhead-footer {
-                margin-top: 14px;
-                padding-top: 2px;
-              }
-
-              .tip-footer-body {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                gap: 16px;
-                padding-top: 4px;
-              }
-
-              .tip-footer-left {
-                display: flex;
-                align-items: center;
-                gap: 14px;
-              }
-
-              .iso-badge-box {
-                border: 1.5px solid #334155;
-                padding: 4px 8px;
-                display: flex;
-                align-items: center;
-                gap: 7px;
-                background: #ffffff;
-              }
-
-              .iso-ring {
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-                border: 2.5px solid #0f172a;
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                font-weight: 900;
-                font-size: 9px;
-                color: #0f172a;
-              }
-
-              .iso-caption {
-                display: flex;
-                flex-direction: column;
-                font-size: 7.5px;
-                line-height: 1.15;
-                color: #0f172a;
-              }
-
-              .iso-caption strong {
-                font-size: 8px;
-                letter-spacing: 0.3px;
-              }
-
-              .iso-std {
-                font-weight: 800;
-                color: #14532d;
-              }
-
-              .tip-contact-list {
-                display: flex;
-                flex-direction: column;
-                gap: 3px;
-                font-size: 11px;
-                font-weight: 600;
-                color: #0f172a;
-              }
-
-              .contact-item {
-                display: flex;
-                align-items: center;
-                gap: 6px;
-              }
-
-              .contact-icon {
-                color: #1d4ed8;
-                font-size: 12px;
-              }
-
-              .tip-footer-right {
-                text-align: right;
-              }
-
-              .tip-motto {
-                font-size: 20px;
-                font-weight: 900;
-                font-style: italic;
-                letter-spacing: 0.4px;
-                line-height: 1.1;
-              }
-
-              .motto-green {
-                color: #15803d;
-              }
-
-              .motto-blue {
-                color: #1d4ed8;
-              }
-
-              .motto-gold {
-                color: #d97706;
-              }
-
-              .tip-core-values {
-                font-size: 9.5px;
-                font-weight: 700;
-                font-style: italic;
-                color: #1e293b;
-                margin-top: 3px;
-              }
-
-              @page {
-                size: A4 portrait;
-                margin: 8mm 10mm;
-              }
-
-              @media print {
-                .no-print {
-                  display: none !important;
-                }
-
-                body {
-                  background: #ffffff;
-                  padding: 0;
-                }
-
-                .oas-sheet {
-                  max-width: 100%;
-                  min-height: 277mm;
-                  padding: 0;
-                  box-shadow: none;
-                  border-radius: 0;
-                }
-              }
+}

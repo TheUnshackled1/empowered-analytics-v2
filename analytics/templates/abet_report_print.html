@@ -1,14 +1,12 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ABET Self-Study Report (SSR) | T.I.P. EmpowerED v2.0</title>
   <link rel="stylesheet" href="{% static 'css/abet_report_print.css' %}">
 </head>
-
 <body>
   <div class="no-print toolbar">
     <a href="{% url 'panel7-abet' %}" class="btn-back">← Back to Panel 07</a>
@@ -17,250 +15,301 @@
 
   <main class="oas-sheet">
     <div class="oas-sheet-top">
-      <!-- T.I.P. Official Institutional Letterhead Header (Modelled on OAS Letterhead) -->
+      <!-- Unique T.I.P. Black & Gold 3-Column Official Letterhead Header -->
       <div class="tip-letterhead-header">
+        <!-- Left: T.I.P. 1962 Obsidian & Gold Hex-Gear Crest -->
         <div class="tip-seal-wrap" aria-hidden="true">
           <svg class="tip-seal-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-            <circle cx="50" cy="50" r="47" fill="#0f172a" stroke="#f59e0b" stroke-width="3.5" />
-            <circle cx="50" cy="50" r="39" fill="#14532d" stroke="#fbbf24" stroke-width="1.8" />
-            <circle cx="50" cy="50" r="30" fill="#0b111e" stroke="#f59e0b" stroke-width="1.5" />
-            <!-- Gear teeth accent -->
-            <g stroke="#fbbf24" stroke-width="2.4" stroke-linecap="round">
-              <line x1="50" y1="14" x2="50" y2="19" />
-              <line x1="50" y1="81" x2="50" y2="86" />
-              <line x1="14" y1="50" x2="19" y2="50" />
-              <line x1="81" y1="50" x2="86" y2="50" />
-              <line x1="25" y1="25" x2="29" y2="29" />
-              <line x1="71" y1="71" x2="75" y2="75" />
-              <line x1="75" y1="25" x2="71" y2="29" />
-              <line x1="29" y1="71" x2="25" y2="75" />
-            </g>
-            <!-- Shield & Torch / T.I.P. Monogram -->
-            <polygon points="50,25 65,33 61,56 50,65 39,56 35,33" fill="#f59e0b" opacity="0.18" stroke="#fbbf24"
-              stroke-width="1.4" />
-            <text x="50" y="48" text-anchor="middle" fill="#fbbf24" font-family="Segoe UI, Arial, sans-serif"
-              font-weight="900" font-size="14" letter-spacing="1">T.I.P.</text>
-            <text x="50" y="59" text-anchor="middle" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif"
-              font-weight="700" font-size="7.5" letter-spacing="0.8">1962</text>
-            <text x="50" y="76" text-anchor="middle" fill="#86efac" font-family="Segoe UI, Arial, sans-serif"
-              font-weight="700" font-size="5.5" letter-spacing="0.7">MANILA • QC</text>
+              <polygon points="50,3 91,26 91,74 50,97 9,74 9,26" fill="#0b111e" stroke="#f59e0b" stroke-width="3.5" />
+              <circle cx="50" cy="50" r="35" fill="#1e293b" stroke="#fbbf24" stroke-width="1.8" />
+              <circle cx="50" cy="50" r="27" fill="#0b111e" stroke="#f59e0b" stroke-width="1.4" />
+              <g stroke="#fbbf24" stroke-width="2.2" stroke-linecap="round">
+                <line x1="50" y1="16" x2="50" y2="21" />
+                <line x1="50" y1="79" x2="50" y2="84" />
+                <line x1="16" y1="50" x2="21" y2="50" />
+                <line x1="79" y1="50" x2="84" y2="50" />
+                <line x1="26" y1="26" x2="30" y2="30" />
+                <line x1="70" y1="70" x2="74" y2="74" />
+                <line x1="74" y1="26" x2="70" y2="30" />
+                <line x1="30" y1="70" x2="26" y2="74" />
+              </g>
+              <text x="50" y="47" text-anchor="middle" fill="#fbbf24" font-family="Segoe UI, Arial, sans-serif"
+                font-weight="900" font-size="13.5" letter-spacing="1">T.I.P.</text>
+              <text x="50" y="58" text-anchor="middle" fill="#f8fafc" font-family="Segoe UI, Arial, sans-serif"
+                font-weight="800" font-size="7.5" letter-spacing="1.2">1962</text>
+              <text x="50" y="72" text-anchor="middle" fill="#f59e0b" font-family="Segoe UI, Arial, sans-serif"
+                font-weight="700" font-size="5.2" letter-spacing="0.6">MANILA • QC</text>
           </svg>
         </div>
 
+        <!-- Center: T.I.P. Institutional Identity & Campuses -->
         <div class="tip-header-text">
+          <div class="tip-republic-kicker">
+            REPUBLIC OF THE PHILIPPINES • CHED AUTONOMOUS HIGHER EDUCATION INSTITUTION
+          </div>
           <div class="tip-univ-name">Technological Institute of the Philippines</div>
+          <div class="tip-dept-bar">
+            COLLEGE OF INFORMATION TECHNOLOGY &amp; ENGINEERING • OUTCOMES-BASED EDUCATION (OBE) OFFICE
+          </div>
           <div class="tip-campuses">
-            Manila Campus (Quiapo) • Quezon City Campus (Cubao) • College of Information Technology &amp; Engineering
+            <strong>Quezon City Campus:</strong> 938 Aurora Blvd., Cubao, QC &nbsp;|&nbsp;
+            <strong>Manila Campus:</strong> 363 P. Casal St., Quiapo, Manila
           </div>
-          <div class="tip-vision-main">
-            A premier technological institute of higher learning empowering globally competitive outcomes-based
-            graduates
           </div>
-          <div class="tip-vision-sub">
-            (Outcomes-Based Education • ABET EAC/CAC Accredited • CHED Autonomous Status • RA 10173 Data Privacy
-            Compliant)
-          </div>
-        </div>
-      </div>
 
-      <div class="tip-letterhead-rule" aria-hidden="true"></div>
-
-      <!-- Dark Navy OAS Executive Report Title Banner -->
-      <header class="report-header">
-        <div class="banner-top-row">
-          <h1>TECHNOLOGICAL INSTITUTE OF THE PHILIPPINES (T.I.P.) — OAS / EMPOWERED API v2.0</h1>
-          <div class="sub">
-            Automated ABET &amp; CHED Outcomes-Based Education (OBE) Self-Study Report (SSR)
-          </div>
-        </div>
-        <div class="banner-meta-row">
-          <span>Generated: <strong>{{ generated_at|date:"Y-m-d H:i:s" }}</strong> (Asia/Manila)</span>
-          <span class="meta-sep">|</span>
-          <span>SSR Readiness: <strong>{{ abet.ssr_pct }}%</strong> ({{ abet.locked_count }}/{{ abet.total_count }}
-            Locked)</span>
-          <span class="meta-sep">|</span>
-          <span class="header-right">
-            {% if is_sealed %}
-            RA 10173 DPA Audit Seal: <code>{{ seal_hash }}</code>
-            {% else %}
-            <span class="unsealed">UNSEALED PREVIEW — generate from Panel 07</span>
-            {% endif %}
-          </span>
-        </div>
-      </header>
-
-      <!-- Executive KPI Summary Row -->
-      <section class="kpi-row">
-        <div class="kpi">
-          <strong>{{ kpis.abet_accreditation }}%</strong>
-          <span>ABET Accreditation</span>
-        </div>
-        <div class="kpi">
-          <strong>{{ kpis.ched_obe_status }}%</strong>
-          <span>CHED OBE Status</span>
-        </div>
-        <div class="kpi">
-          <strong>{{ kpis.matrix_coverage }}%</strong>
-          <span>Matrix Coverage</span>
-        </div>
-        <div class="kpi">
-          <strong>{{ kpis.deficit }}%</strong>
-          <span>Attainment Deficit</span>
-        </div>
-      </section>
-
-      <!-- Section 1: Course Mapping Matrix -->
-      <h3>1. Curriculum Outcomes-Based Course Mapping Matrix (SO1 – SO4)</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Course Code</th>
-            <th>Course Title</th>
-            <th>SO1</th>
-            <th>SO2</th>
-            <th>SO3</th>
-            <th>SO4</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in matrix_rows %}
-          <tr>
-            <td><strong>{{ row.course_code }}</strong></td>
-            <td class="left">{{ row.course_title }}</td>
-            {% for cell in row.cells %}
-            <td class="center">
-              {% if cell.proficiency %}
-              <span class="so-pill so-{{ cell.proficiency|lower }}">{{ cell.proficiency }}</span>
-              {% else %}
-              <span class="so-unmapped">—</span>
-              {% endif %}
-            </td>
-            {% endfor %}
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-      <p class="legend">I = Introductory (1 pt) · E = Enabling (2 pts) · R = Reinforcing (3 pts) · — = Not mapped</p>
-
-      <!-- Section 2: ABET General Criteria Checklist -->
-      <h3>2. ABET General Criteria Verification Checklist</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Criterion</th>
-            <th>Description</th>
-            <th>Verification Status</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for crit in abet.criteria %}
-          <tr>
-            <td><strong>{{ crit.code }}</strong></td>
-            <td class="left">{{ crit.title }}</td>
-            <td class="center">
-              {% if crit.locked %}
-              <span class="status-verified">✓ Locked &amp; Verified</span>
-              {% else %}
-              <span class="status-pending">Pending Final Audit</span>
-              {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-
-      <!-- Section 3: Student Competency Attainment -->
-      <h3>3. Aggregated Student Competency Attainment (Target ≥ 80%)</h3>
-      <table>
-        <thead>
-          <tr>
-            <th>Competency</th>
-            <th>Attainment</th>
-            <th>Remark</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="left"><strong>Knowledge</strong></td>
-            <td class="center"><strong>{{ comp.knowledge }}%</strong></td>
-            <td class="center">{% if comp.knowledge >= 80 %}<span class="status-verified">TARGET MET</span>{% else
-              %}<span class="status-pending">CONTINUOUS IMPROVEMENT</span>{% endif %}</td>
-          </tr>
-          <tr>
-            <td class="left"><strong>Skills</strong></td>
-            <td class="center"><strong>{{ comp.skills }}%</strong></td>
-            <td class="center">{% if comp.skills >= 80 %}<span class="status-verified">TARGET MET</span>{% else %}<span
-                class="status-pending">CONTINUOUS IMPROVEMENT</span>{% endif %}</td>
-          </tr>
-          <tr>
-            <td class="left"><strong>Values</strong></td>
-            <td class="center"><strong>{{ comp.values }}%</strong></td>
-            <td class="center">{% if comp.values >= 80 %}<span class="status-verified">TARGET MET</span>{% else %}<span
-                class="status-pending">CONTINUOUS IMPROVEMENT</span>{% endif %}</td>
-          </tr>
-          <tr>
-            <td class="left"><strong>Capstone Readiness</strong></td>
-            <td class="center"><strong>{{ comp.capstone }}%</strong></td>
-            <td class="center">{% if comp.capstone >= 80 %}<span class="status-verified">TARGET MET</span>{% else
-              %}<span class="status-pending">CONTINUOUS IMPROVEMENT</span>{% endif %}</td>
-          </tr>
-          <tr>
-            <td class="left"><strong>Internship Hours</strong></td>
-            <td class="center"><strong>{{ comp.internship }}%</strong></td>
-            <td class="center">{% if comp.internship >= 80 %}<span class="status-verified">TARGET MET</span>{% else
-              %}<span class="status-pending">CONTINUOUS IMPROVEMENT</span>{% endif %}</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <div class="dpa-compliance-note">
-        <strong>RA 10173 Data Privacy Certification:</strong> Generated automatically via EmpowerED Analytics Module
-        v2.0 REST API Middleware.
-        All student-level Canvas LMS LTI 1.3 rubric submissions were anonymized using SHA-256 tokenization prior to
-        storage in compliance
-        with Republic Act No. 10173 (Data Privacy Act of 2012).
-      </div>
-    </div>
-
-    <!-- T.I.P. Official Institutional Letterhead Footer (Modelled on OAS Footer) -->
-    <footer class="tip-letterhead-footer">
-      <div class="tip-letterhead-rule" aria-hidden="true"></div>
-      <div class="tip-footer-body">
-        <div class="tip-footer-left">
-          <div class="iso-badge-box">
-            <div class="iso-ring">ISO</div>
-            <div class="iso-caption">
-              <strong>CERTIFICATION</strong>
-              <span>INTERNATIONAL</span>
-              <span class="iso-std">ISO 9001:2015</span>
+          <!-- Right: Unique T.I.P. QA Document Control Stamp Box -->
+          <div class="tip-doc-control">
+            <div class="doc-ctrl-head">QA DOCUMENT CONTROL</div>
+            <div class="doc-ctrl-row">
+              <span>DOC CODE</span>
+              <strong>TIP-OAS-SSR-26</strong>
+            </div>
+              <div class="doc-ctrl-row">
+                <span>REVISION</span>
+                <strong>v2.0 (LTI 1.3)</strong>
+              </div>
+              <div class="doc-ctrl-row">
+                <span>STANDARD</span>
+                <strong>ABET / RA 10173</strong>
+              </div>
             </div>
           </div>
-          <div class="tip-contact-list">
-            <div class="contact-item">
-              <span class="contact-icon" aria-hidden="true">☎</span>
-              <span>(02) 8911-0964 / (02) 8733-9117</span>
+
+          <!-- Signature T.I.P. Double Obsidian & Gold Ribbon Divider -->
+          <div class="tip-letterhead-rule" aria-hidden="true">
+            <div class="rule-obsidian"></div>
+            <div class="rule-gold"></div>
+          </div>
+
+          <!-- Split-Layout Obsidian & Gold Executive Report Banner -->
+          <header class="report-header">
+              <div class="banner-left">
+                <div class="banner-kicker">OFFICIAL INSTITUTIONAL SELF-STUDY REPORT (SSR) DOSSIER</div>
+                <h1>EmpowerED Analytics Module v2.0 — Automated ABET &amp; CHED OBE Compliance</h1>
+                <div class="sub">
+                  Generated: <strong>{{ generated_at|date:"Y-m-d H:i:s" }}</strong> (Asia/Manila) &nbsp;•&nbsp;
+                  Pipeline: <strong>Canvas LMS LTI 1.3 → EmpowerED SIS</strong>
+                </div>
+              </div>
+                  <div class="banner-right-card">
+                    <div class="readiness-line">
+                      SSR Readiness: <strong>{{ abet.ssr_pct }}%</strong>
+                      <span>({{ abet.locked_count }}/{{ abet.total_count }} Locked)</span>
+                    </div>
+                    <div class="header-right">
+                      {% if is_sealed %}
+                      RA 10173 DPA Audit Seal: <code>{{ seal_hash }}</code>
+                      {% else %}
+                      <span class="unsealed">UNSEALED PREVIEW — generate from Panel 07</span>
+                      {% endif %}
+              </div>
             </div>
-            <div class="contact-item">
-              <span class="contact-icon" aria-hidden="true">🌐</span>
-              <span>tip.edu.ph • empowered.tip.edu.ph</span>
+          </header>
+
+          <!-- 4 Gold-Topped Executive KPI Cards -->
+          <section class="kpi-row">
+            <div class="kpi">
+              <span class="kpi-tag">ACCREDITATION</span>
+              <strong>{{ kpis.abet_accreditation }}%</strong>
+              <span>ABET Accreditation</span>
             </div>
+            <div class="kpi">
+              <span class="kpi-tag">AUTONOMOUS OBE</span>
+              <strong>{{ kpis.ched_obe_status }}%</strong>
+              <span>CHED OBE Status</span>
+            </div>
+            <div class="kpi">
+              <span class="kpi-tag">CURRICULUM MAP</span>
+              <strong>{{ kpis.matrix_coverage }}%</strong>
+              <span>Matrix Coverage</span>
+            </div>
+            <div class="kpi">
+              <span class="kpi-tag">GAP ANALYSIS</span>
+              <strong>{{ kpis.deficit }}%</strong>
+              <span>Attainment Deficit</span>
+            </div>
+          </section>
+
+          <!-- Section 1: Course Mapping Matrix -->
+          <h3><span class="sec-num">01</span> Curriculum Outcomes-Based Course Mapping Matrix (SO1 – SO4)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Course Code</th>
+                <th>Course Title</th>
+                <th>SO1</th>
+                <th>SO2</th>
+                <th>SO3</th>
+                <th>SO4</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in matrix_rows %}
+              <tr>
+                <td><strong>{{ row.course_code }}</strong></td>
+                <td class="left">{{ row.course_title }}</td>
+                {% for cell in row.cells %}
+                <td class="center">
+                  {% if cell.proficiency %}
+                  <span class="so-pill so-{{ cell.proficiency|lower }}">{{ cell.proficiency }}</span>
+                  {% else %}
+                  <span class="so-unmapped">—</span>
+                  {% endif %}
+                </td>
+                {% endfor %}
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          <p class="legend">I = Introductory (1 pt) · E = Enabling (2 pts) · R = Reinforcing (3 pts) · — = Not mapped
+          </p>
+
+          <!-- Section 2: ABET General Criteria Checklist -->
+          <h3><span class="sec-num">02</span> ABET General Criteria Verification Checklist</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Criterion</th>
+                <th>Description</th>
+                <th>Verification Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for crit in abet.criteria %}
+              <tr>
+                <td><strong>{{ crit.code }}</strong></td>
+                <td class="left">{{ crit.title }}</td>
+                <td class="center">
+                  {% if crit.locked %}
+                  <span class="status-verified">✓ Locked &amp; Verified</span>
+                  {% else %}
+                  <span class="status-pending">Pending Final Audit</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+
+          <!-- Section 3: Student Competency Attainment -->
+          <h3><span class="sec-num">03</span> Aggregated Student Competency Attainment (Target ≥ 80%)</h3>
+          <table>
+            <thead>
+              <tr>
+                <th>Competency Domain</th>
+                <th>Attainment</th>
+                <th>Evaluation Remark</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="left"><strong>Knowledge</strong></td>
+                <td class="center"><strong>{{ comp.knowledge }}%</strong></td>
+                <td class="center">
+                  {% if comp.knowledge >= 80 %}
+                  <span class="status-verified">TARGET MET</span>
+                  {% else %}
+                  <span class="status-pending">CONTINUOUS IMPROVEMENT</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="left"><strong>Skills</strong></td>
+                <td class="center"><strong>{{ comp.skills }}%</strong></td>
+                <td class="center">
+                  {% if comp.skills >= 80 %}
+                  <span class="status-verified">TARGET MET</span>
+                  {% else %}
+                  <span class="status-pending">CONTINUOUS IMPROVEMENT</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="left"><strong>Values</strong></td>
+                <td class="center"><strong>{{ comp.values }}%</strong></td>
+                <td class="center">
+                  {% if comp.values >= 80 %}
+                  <span class="status-verified">TARGET MET</span>
+                  {% else %}
+                  <span class="status-pending">CONTINUOUS IMPROVEMENT</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="left"><strong>Capstone Readiness</strong></td>
+                <td class="center"><strong>{{ comp.capstone }}%</strong></td>
+                <td class="center">
+                  {% if comp.capstone >= 80 %}
+                  <span class="status-verified">TARGET MET</span>
+                  {% else %}
+                  <span class="status-pending">CONTINUOUS IMPROVEMENT</span>
+                  {% endif %}
+                </td>
+              </tr>
+              <tr>
+                <td class="left"><strong>Internship Hours</strong></td>
+                <td class="center"><strong>{{ comp.internship }}%</strong></td>
+                <td class="center">
+                  {% if comp.internship >= 80 %}
+                  <span class="status-verified">TARGET MET</span>
+                  {% else %}
+                  <span class="status-pending">CONTINUOUS IMPROVEMENT</span>
+                  {% endif %}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="dpa-compliance-note">
+            <strong>RA 10173 Data Privacy Certification:</strong> Generated automatically via EmpowerED Analytics Module
+            v2.0 REST API Middleware.
+            All student-level Canvas LMS LTI 1.3 rubric submissions were anonymized using SHA-256 tokenization prior to
+            storage in compliance
+            with Republic Act No. 10173 (Data Privacy Act of 2012).
           </div>
         </div>
 
-        <div class="tip-footer-right">
-          <div class="tip-motto">
-            <span class="motto-green">EMPOWERED</span>
-            <span class="motto-blue">T.I.P.</span>
-            <span class="motto-gold">EXCELLENCE!</span>
+        <!-- Unique T.I.P. 3-Zone Institutional Accreditation & Sign-Off Footer -->
+        <footer class="tip-letterhead-footer">
+          <div class="tip-letterhead-rule" aria-hidden="true">
+            <div class="rule-gold"></div>
+            <div class="rule-obsidian"></div>
           </div>
-          <div class="tip-core-values">
-            Outcomes-Based Education • Innovation • Integrity • Global Competence • Industry Partnership •
-            Nation-Building
-          </div>
-        </div>
-      </div>
-    </footer>
+
+          <div class="tip-footer-body">
+                <!-- Zone 1: Dual Accreditation Badges (ABET + ISO 9001:2015) -->
+                <div class="tip-footer-badges">
+                  <div class="accred-badge badge-abet">
+                    <span class="badge-top">INTERNATIONAL</span>
+                    <strong>ABET EAC / CAC</strong>
+                    <span class="badge-sub">ACCREDITED</span>
+                  </div>
+                    <div class="accred-badge badge-iso">
+                      <span class="badge-top">QUALITY CERTIFIED</span>
+                      <strong>ISO 9001:2015</strong>
+                      <span class="badge-sub">QMS VERIFIED</span>
+                    </div>
+                  </div>
+
+                  <!-- Zone 2: T.I.P. Institutional Trunklines & Portal -->
+                  <div class="tip-footer-center">
+                    <div><strong>Technological Institute of the Philippines (T.I.P.)</strong></div>
+                    <div>Tel: (02) 8911-0964 (QC) • (02) 8733-9117 (Manila)</div>
+                    <div>Web: <strong>www.tip.edu.ph</strong> • Portal: <strong>empowered.tip.edu.ph</strong></div>
+                  </div>
+
+                  <!-- Zone 3: T.I.P. Black & Gold Institutional Stamp -->
+                  <div class="tip-footer-right">
+                      <div class="tip-stamp-pill">
+                        <span class="stamp-gold">T.I.P.</span>
+                        <span class="stamp-white">EMPOWERED EXCELLENCE!</span>
+                      </div>
+                      <div class="tip-core-values">
+                        Outcomes-Based Education • Technopreneurship • Global Competence
+                      </div>
+                    </div>
+                  </div>
+        </footer>
   </main>
 </body>
-
 </html>
