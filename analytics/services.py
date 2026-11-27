@@ -331,39 +331,124 @@ def build_abet_ssr_pdf(criteria: list[dict], audit_hash: str) -> bytes:
         from fpdf import FPDF
 
     pdf = FPDF(orientation='P', unit='mm', format='A4')
-    pdf.set_auto_page_break(auto=True, margin=15)
+    pdf.set_auto_page_break(auto=False)
     pdf.add_page()
 
-    # Header Banner
-    pdf.set_fill_color(11, 17, 30)
-    pdf.rect(10, 10, 190, 26, style='F')
-    pdf.set_xy(15, 14)
-    pdf.set_text_color(245, 158, 11)
-    pdf.set_font('Helvetica', 'B', 14)
-    pdf.cell(0, 7, 'TECHNOLOGICAL INSTITUTE OF THE PHILIPPINES (T.I.P.)', new_x='LMARGIN', new_y='NEXT')
-    pdf.set_x(15)
+    # =========================================================================
+    # T.I.P. Official Institutional Letterhead Header (Modelled on OAS Header)
+    # =========================================================================
+    # Circular T.I.P. Seal on Left
+    pdf.set_fill_color(15, 23, 42)
+    pdf.set_draw_color(245, 158, 11)
+    pdf.set_line_width(0.8)
+    pdf.ellipse(12, 10, 22, 22, style='DF')
+    pdf.set_fill_color(20, 83, 45)
+    pdf.ellipse(14.2, 12.2, 17.6, 17.6, style='DF')
+    pdf.set_xy(12, 17.5)
+    pdf.set_text_color(251, 191, 36)
+    pdf.set_font('Helvetica', 'B', 8.5)
+    pdf.cell(22, 4, 'T.I.P.', align='C', new_x='LMARGIN', new_y='NEXT')
+    pdf.set_xy(12, 21.5)
     pdf.set_text_color(248, 250, 252)
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.cell(0, 6, 'EmpowerED Analytics Module v2.0 | ABET Self-Study Report (SSR)', new_x='LMARGIN', new_y='NEXT')
-    pdf.set_x(15)
-    pdf.set_text_color(148, 163, 184)
-    pdf.set_font('Helvetica', '', 8)
-    now_str = timezone.localtime().strftime('%Y-%m-%d %H:%M:%S %Z')
+    pdf.set_font('Helvetica', 'B', 6.2)
+    pdf.cell(22, 3.5, '1962', align='C', new_x='LMARGIN', new_y='NEXT')
+
+    # University Name, Campuses, and Vision Tagline on Right
+    pdf.set_xy(38, 10.5)
+    pdf.set_text_color(30, 58, 138)
+    pdf.set_font('Helvetica', 'B', 16.5)
+    pdf.cell(0, 6.5, 'Technological Institute of the Philippines', new_x='LMARGIN', new_y='NEXT')
+
+    pdf.set_x(38)
+    pdf.set_text_color(29, 78, 216)
+    pdf.set_font('Helvetica', 'B', 8.8)
     pdf.cell(
         0,
-        5,
-        _ascii_safe(f'Generated: {now_str}  |  RA 10173 DPA SHA-256 Seal: {audit_hash}'),
+        4.5,
+        'Manila Campus (Quiapo)  |  Quezon City Campus (Cubao)  |  College of Information Technology & Engineering',
         new_x='LMARGIN',
         new_y='NEXT',
     )
 
-    pdf.ln(8)
+    pdf.set_x(38)
+    pdf.set_text_color(21, 128, 61)
+    pdf.set_font('Helvetica', 'BI', 8.6)
+    pdf.cell(
+        0,
+        4.4,
+        'A premier technological institute of higher learning empowering globally competitive outcomes-based graduates',
+        new_x='LMARGIN',
+        new_y='NEXT',
+    )
+
+    pdf.set_x(38)
+    pdf.set_text_color(22, 163, 74)
+    pdf.set_font('Helvetica', 'I', 7.4)
+    pdf.cell(
+        0,
+        4.0,
+        '(Outcomes-Based Education  |  ABET EAC/CAC Accredited  |  CHED Autonomous Status  |  RA 10173 Data Privacy Compliant)',
+        new_x='LMARGIN',
+        new_y='NEXT',
+    )
+
+    # Top Letterhead Accent Rule
+    pdf.set_fill_color(21, 128, 61)
+    pdf.rect(10, 34.2, 135, 1.3, style='F')
+    pdf.set_fill_color(245, 158, 11)
+    pdf.rect(145, 34.2, 55, 1.3, style='F')
+
+    # =========================================================================
+    # Dark Navy OAS Executive Report Title Banner
+    # =========================================================================
+    pdf.set_fill_color(11, 17, 30)
+    pdf.rect(10, 38.0, 190, 20.5, style='F')
+    pdf.set_fill_color(22, 163, 74)
+    pdf.rect(10, 38.0, 2.2, 20.5, style='F')
+
+    pdf.set_xy(15, 40.0)
+    pdf.set_text_color(34, 197, 94)
+    pdf.set_font('Helvetica', 'B', 11.2)
+    pdf.cell(
+        0,
+        5.5,
+        'TECHNOLOGICAL INSTITUTE OF THE PHILIPPINES (T.I.P.) - OAS / EMPOWERED API v2.0',
+        new_x='LMARGIN',
+        new_y='NEXT',
+    )
+    pdf.set_x(15)
+    pdf.set_text_color(248, 250, 252)
+    pdf.set_font('Helvetica', 'B', 9.2)
+    pdf.cell(
+        0,
+        5.0,
+        'Automated ABET & CHED Outcomes-Based Education (OBE) Self-Study Report (SSR)',
+        new_x='LMARGIN',
+        new_y='NEXT',
+    )
+    pdf.set_x(15)
+    pdf.set_text_color(203, 213, 225)
+    pdf.set_font('Helvetica', '', 7.8)
+    now_str = timezone.localtime().strftime('%Y-%m-%d %H:%M:%S %Z')
+    pdf.cell(
+        0,
+        4.5,
+        _ascii_safe(
+            f'Generated: {now_str}  |  SSR Readiness: {readiness_pct}% ({locked_count}/{len(criteria_rows)} Locked)  |  RA 10173 Seal: {audit_hash}'
+        ),
+        new_x='LMARGIN',
+        new_y='NEXT',
+    )
+
+    pdf.set_xy(10, 62.0)
     pdf.set_text_color(15, 23, 42)
+    pdf.set_draw_color(148, 163, 184)
+    pdf.set_line_width(0.25)
 
     # Section 1: Institutional KPIs
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.cell(0, 7, '1. Institutional OBE & Accreditation KPI Summary', new_x='LMARGIN', new_y='NEXT')
-    pdf.set_font('Helvetica', '', 7.8)
+    pdf.set_font('Helvetica', 'B', 10)
+    pdf.cell(0, 6, '1. Institutional OBE & Accreditation KPI Summary', new_x='LMARGIN', new_y='NEXT')
+    pdf.set_font('Helvetica', 'B', 7.8)
     pdf.set_fill_color(241, 245, 249)
     kpi_items = [
         ('ABET Accreditation', f"{kpis['abet_accreditation']}%"),
@@ -374,56 +459,64 @@ def build_abet_ssr_pdf(criteria: list[dict], audit_hash: str) -> bytes:
     ]
     for label, val in kpi_items:
         pdf.cell(38, 7, _ascii_safe(f'{label}: {val}'), border=1, fill=True, align='C')
-    pdf.ln(11)
+    pdf.ln(10)
 
     # Section 2: ABET Criteria Checklist
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.cell(0, 7, '2. ABET General Criteria Verification Status', new_x='LMARGIN', new_y='NEXT')
-    pdf.set_font('Helvetica', 'B', 9)
-    pdf.set_fill_color(30, 41, 59)
+    pdf.set_font('Helvetica', 'B', 10)
+    pdf.cell(0, 6, '2. ABET General Criteria Verification Status', new_x='LMARGIN', new_y='NEXT')
+    pdf.set_font('Helvetica', 'B', 8.5)
+    pdf.set_fill_color(20, 83, 45)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(35, 7, 'Criterion', border=1, fill=True)
-    pdf.cell(115, 7, 'Description', border=1, fill=True)
-    pdf.cell(40, 7, 'SSR Lock Status', border=1, fill=True, align='C', new_x='LMARGIN', new_y='NEXT')
+    pdf.cell(35, 6.5, 'Criterion', border=1, fill=True)
+    pdf.cell(115, 6.5, 'Description', border=1, fill=True)
+    pdf.cell(40, 6.5, 'SSR Lock Status', border=1, fill=True, align='C', new_x='LMARGIN', new_y='NEXT')
 
-    pdf.set_font('Helvetica', '', 9)
+    pdf.set_font('Helvetica', '', 8.5)
     pdf.set_text_color(15, 23, 42)
     for row in criteria_rows:
         status_txt = 'LOCKED (VERIFIED)' if row.get('locked') else 'OPEN (IN REVIEW)'
-        pdf.cell(35, 6.5, _ascii_safe(row.get('code', '')), border=1)
-        pdf.cell(115, 6.5, _ascii_safe(row.get('title', '')), border=1)
-        pdf.cell(40, 6.5, status_txt, border=1, align='C', new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(35, 6.0, _ascii_safe(row.get('code', '')), border=1)
+        pdf.cell(115, 6.0, _ascii_safe(row.get('title', '')), border=1)
+        pdf.cell(40, 6.0, status_txt, border=1, align='C', new_x='LMARGIN', new_y='NEXT')
 
-    pdf.ln(6)
+    pdf.ln(4.5)
 
     # Section 3: Curriculum OBE Course Mapping Matrix
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.cell(0, 7, '3. Curriculum Outcomes-Based Course Mapping Matrix (I / E / R)', new_x='LMARGIN', new_y='NEXT')
-    pdf.set_font('Helvetica', 'B', 9)
-    pdf.set_fill_color(30, 41, 59)
+    pdf.set_font('Helvetica', 'B', 10)
+    pdf.cell(0, 6, '3. Curriculum Outcomes-Based Course Mapping Matrix (I / E / R)', new_x='LMARGIN', new_y='NEXT')
+    pdf.set_font('Helvetica', 'B', 8.5)
+    pdf.set_fill_color(20, 83, 45)
     pdf.set_text_color(255, 255, 255)
-    pdf.cell(30, 7, 'Course', border=1, fill=True)
-    pdf.cell(80, 7, 'Course Title', border=1, fill=True)
+    pdf.cell(30, 6.5, 'Course', border=1, fill=True)
+    pdf.cell(80, 6.5, 'Course Title', border=1, fill=True)
     for so in ('SO1', 'SO2', 'SO3', 'SO4'):
-        pdf.cell(20, 7, so, border=1, fill=True, align='C')
-    pdf.ln(7)
+        pdf.cell(20, 6.5, so, border=1, fill=True, align='C')
+    pdf.ln(6.5)
 
-    pdf.set_font('Helvetica', '', 9)
+    pdf.set_font('Helvetica', '', 8.5)
     pdf.set_text_color(15, 23, 42)
     for course in courses:
         outcome_map = {o.so_code: o.proficiency for o in course.outcomes.all()}
-        pdf.cell(30, 6.5, _ascii_safe(course.course_code), border=1)
-        pdf.cell(80, 6.5, _ascii_safe(course.course_title), border=1)
+        pdf.cell(30, 6.0, _ascii_safe(course.course_code), border=1)
+        pdf.cell(80, 6.0, _ascii_safe(course.course_title), border=1)
         for so in ('SO1', 'SO2', 'SO3', 'SO4'):
-            pdf.cell(20, 6.5, outcome_map.get(so, '-'), border=1, align='C')
-        pdf.ln(6.5)
+            pdf.cell(20, 6.0, outcome_map.get(so, '-'), border=1, align='C')
+        pdf.ln(6.0)
 
-    pdf.ln(6)
+    pdf.ln(4.5)
 
     # Section 4: Aggregated Student Competency Attainment
-    pdf.set_font('Helvetica', 'B', 11)
-    pdf.cell(0, 7, '4. Aggregated Student Competency Attainment (Target >= 80%)', new_x='LMARGIN', new_y='NEXT')
-    pdf.set_font('Helvetica', '', 9)
+    pdf.set_font('Helvetica', 'B', 10)
+    pdf.cell(0, 6, '4. Aggregated Student Competency Attainment (Target >= 80%)', new_x='LMARGIN', new_y='NEXT')
+    pdf.set_font('Helvetica', 'B', 8.5)
+    pdf.set_fill_color(20, 83, 45)
+    pdf.set_text_color(255, 255, 255)
+    pdf.cell(65, 6.5, 'Competency Domain', border=1, fill=True)
+    pdf.cell(45, 6.5, 'Attainment', border=1, fill=True, align='C')
+    pdf.cell(80, 6.5, 'Evaluation Remark', border=1, fill=True, align='C', new_x='LMARGIN', new_y='NEXT')
+
+    pdf.set_font('Helvetica', '', 8.5)
+    pdf.set_text_color(15, 23, 42)
     comp_rows = [
         ('Knowledge', comp['knowledge']),
         ('Skills', comp['skills']),
@@ -433,21 +526,69 @@ def build_abet_ssr_pdf(criteria: list[dict], audit_hash: str) -> bytes:
     ]
     for name, score in comp_rows:
         remark = 'TARGET MET' if score >= 80.0 else 'CONTINUOUS IMPROVEMENT'
-        pdf.cell(65, 6.5, name, border=1)
-        pdf.cell(45, 6.5, f'{score:.1f}%', border=1, align='C')
-        pdf.cell(80, 6.5, remark, border=1, align='C', new_x='LMARGIN', new_y='NEXT')
+        pdf.cell(65, 6.0, name, border=1)
+        pdf.cell(45, 6.0, f'{score:.1f}%', border=1, align='C')
+        pdf.cell(80, 6.0, remark, border=1, align='C', new_x='LMARGIN', new_y='NEXT')
 
-    pdf.ln(6)
-    pdf.set_font('Helvetica', 'I', 8)
-    pdf.set_text_color(100, 116, 139)
+    pdf.ln(3.5)
+    pdf.set_font('Helvetica', 'I', 7.6)
+    pdf.set_text_color(71, 85, 105)
     pdf.multi_cell(
         0,
-        4.5,
+        4.0,
         _ascii_safe(
-            'Compliance Notice: All student-level Canvas LMS LTI 1.3 rubric submissions included in this '
+            'RA 10173 Compliance Notice: All student-level Canvas LMS LTI 1.3 rubric submissions included in this '
             'aggregation were anonymized using SHA-256 tokenization prior to storage in compliance with '
             'Republic Act No. 10173 (Data Privacy Act of 2012).'
         ),
+    )
+
+    # =========================================================================
+    # T.I.P. Official Institutional Letterhead Footer (Modelled on OAS Footer)
+    # =========================================================================
+    pdf.set_fill_color(21, 128, 61)
+    pdf.rect(10, 271.0, 135, 1.3, style='F')
+    pdf.set_fill_color(245, 158, 11)
+    pdf.rect(145, 271.0, 55, 1.3, style='F')
+
+    # Left: ISO 9001:2015 Certification Box + Phone & Web Contacts
+    pdf.set_draw_color(51, 65, 85)
+    pdf.set_line_width(0.35)
+    pdf.rect(10, 274.0, 28, 13.5)
+    pdf.set_xy(10, 275.2)
+    pdf.set_text_color(15, 23, 42)
+    pdf.set_font('Helvetica', 'B', 6.5)
+    pdf.cell(28, 3.2, 'CERTIFICATION', align='C', new_x='LMARGIN', new_y='NEXT')
+    pdf.set_x(10)
+    pdf.set_font('Helvetica', '', 6.0)
+    pdf.cell(28, 3.0, 'INTERNATIONAL', align='C', new_x='LMARGIN', new_y='NEXT')
+    pdf.set_x(10)
+    pdf.set_text_color(20, 83, 45)
+    pdf.set_font('Helvetica', 'B', 6.8)
+    pdf.cell(28, 3.5, 'ISO 9001:2015', align='C', new_x='LMARGIN', new_y='NEXT')
+
+    pdf.set_xy(41, 275.5)
+    pdf.set_text_color(15, 23, 42)
+    pdf.set_font('Helvetica', 'B', 8.0)
+    pdf.cell(50, 4.2, 'Tel: (02) 8911-0964 / 8733-9117', new_x='LMARGIN', new_y='NEXT')
+    pdf.set_x(41)
+    pdf.cell(50, 4.2, 'Web: tip.edu.ph | empowered.tip.edu.ph', new_x='LMARGIN', new_y='NEXT')
+
+    # Right: EMPOWERED T.I.P. EXCELLENCE! Motto & Core Values
+    pdf.set_xy(95, 274.5)
+    pdf.set_text_color(21, 128, 61)
+    pdf.set_font('Helvetica', 'BI', 13.5)
+    pdf.cell(105, 6.0, 'EMPOWERED T.I.P. EXCELLENCE!', align='R', new_x='LMARGIN', new_y='NEXT')
+    pdf.set_xy(85, 281.2)
+    pdf.set_text_color(30, 41, 59)
+    pdf.set_font('Helvetica', 'BI', 6.7)
+    pdf.cell(
+        115,
+        4.0,
+        'Outcomes-Based Education  |  Innovation  |  Integrity  |  Global Competence  |  Nation-Building',
+        align='R',
+        new_x='LMARGIN',
+        new_y='NEXT',
     )
 
     buffer = BytesIO()

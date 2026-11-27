@@ -616,6 +616,11 @@ class EmpowerEDAnalyticsV2Tests(TestCase):
         self.assertNotIn('UNSEALED PREVIEW', html)
         self.assertIn('Criterion 1', html)
         self.assertIn('CPE 616', html)
+        self.assertIn('tip-letterhead-header', html)
+        self.assertIn('Technological Institute of the Philippines', html)
+        self.assertIn('tip-letterhead-footer', html)
+        self.assertIn('ISO 9001:2015', html)
+        self.assertIn('EXCELLENCE!', html)
         self.assertEqual(DPAAuditLog.objects.count(), before + 1)
 
         forged = self.client.get(reverse('abet-report-print'), {'seal': 'deadbe…ffffff'})
